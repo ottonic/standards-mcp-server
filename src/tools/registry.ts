@@ -1,5 +1,6 @@
 import { z } from "zod";
 import * as iso286 from "./iso286-tools.js";
+import * as iso2768 from "./iso2768-tools.js";
 
 /**
  * What this server implements, and what it deliberately does not.
@@ -63,6 +64,20 @@ export const TOOL_REGISTRY: ToolSpec[] = [
             "the inch counterparts (ANSI B4.2)",
           ],
         },
+        {
+          id: "iso2768-1:1989",
+          title: "General tolerances for linear and angular dimensions",
+          covers: [
+            "Table 1 linear dimensions, classes f, m, c and v, sizes 0.5 to 4000 mm",
+            "Table 2 broken edges (external radii and chamfer heights), classes f and c only",
+            "Table 3 angular dimensions, classes f, c and v, keyed by the shorter side of the angle",
+            "whether a stated deviation complies with a general-tolerance note",
+          ],
+          does_not_cover: [
+            "ISO 2768-2:1989 geometrical tolerance classes H, K and L: that part was withdrawn and replaced by ISO 22081:2021, which has no such classes",
+            "class m and v for broken edges, and class m for angular dimensions, which the standard does not tabulate",
+          ],
+        },
       ],
       note: "Values come from the published tables, which are normative; the tolerance factor is used only as a cross-check because it diverges from the table at the smallest size step.",
     }),
@@ -104,6 +119,34 @@ export const TOOL_REGISTRY: ToolSpec[] = [
     inputSchema: iso286.gradeSchema,
     outputSchema: record,
     handler: iso286.gradeHandler,
+  }),
+  defineTool({
+    name: "general_tolerance",
+    title: "ISO 2768-1 General Tolerance",
+    description:
+      "Return the deviation that a general-tolerance note such as ISO 2768-m implies for one dimension, so an unmarked dimension can be checked. " +
+      "The tables differ by what they cover: linear dimensions, broken edges (external radii and chamfer heights), and angular dimensions, which are keyed by the shorter side of the angle rather than the nominal size. " +
+      "A general tolerance applies only where the drawing gives no individual tolerance, so check for one first.",
+    purpose: "The deviation implied by an ISO 2768-1 class for one dimension.",
+    examples: iso2768.generalExamples,
+    inputSchema: iso2768.generalSchema,
+    outputSchema: record,
+    handler: iso2768.generalHandler,
+  }),
+  defineTool({
+    name: "general_tolerance_complies",
+    title: "Check a Deviation Against an ISO 2768-1 Note",
+    description:
+      "Compare a deviation the drawing states for one dimension against what the general-tolerance note permits, and report whether it complies. " +
+      "Answers the common review question: is +/-0.1 on a 45 mm dimension acceptable under an ISO 2768-m note? " +
+      "A tighter stated tolerance is always allowed, so a non-compliant result means the stated tolerance is looser than the note. " +
+      "This compares the two numbers; whether the dimension can actually be produced to either value is not something this server knows.",
+    purpose:
+      "Whether a stated deviation is within the general-tolerance class.",
+    examples: iso2768.complianceExamples,
+    inputSchema: iso2768.complianceSchema,
+    outputSchema: record,
+    handler: iso2768.complianceHandler,
   }),
 ];
 

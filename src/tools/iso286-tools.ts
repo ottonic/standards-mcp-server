@@ -9,14 +9,10 @@ import {
   sizeStep,
 } from "../domain/iso286.js";
 
-const nominal = z
-  .number()
-  .positive()
-  .max(500)
-  .meta({
-    description:
-      "Nominal size in millimetres, above 0 and up to 500. Example: 36.",
-  });
+const nominal = z.number().positive().max(500).meta({
+  description:
+    "Nominal size in millimetres, above 0 and up to 500. Example: 36.",
+});
 
 const designation = z
   .string()
@@ -102,14 +98,9 @@ export async function fitHandler(args: z.output<typeof fitSchema>) {
 export const gradeSchema = z
   .object({
     nominal: nominal.describe("Nominal size in millimetres."),
-    grade: z
-      .number()
-      .int()
-      .min(1)
-      .max(18)
-      .meta({
-        description: "Standard tolerance grade, IT1 to IT18. Example: 7.",
-      }),
+    grade: z.number().int().min(1).max(18).meta({
+      description: "Standard tolerance grade, IT1 to IT18. Example: 7.",
+    }),
   })
   .strict();
 

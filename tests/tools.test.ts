@@ -6,6 +6,11 @@ import {
   limitsHandler,
   tableHandler,
 } from "../src/tools/iso286-tools.js";
+import {
+  complianceHandler,
+  generalHandler,
+  tableHandler as iso2768TableHandler,
+} from "../src/tools/iso2768-tools.js";
 
 /**
  * The tool layer is a contract with a caller that cannot read the source: a
@@ -13,12 +18,14 @@ import {
  * answer and a plausible-looking one.
  */
 describe("tool registry", () => {
-  it("exposes four uniquely named tools", () => {
+  it("exposes six uniquely named tools", () => {
     expect(PUBLIC_TOOL_NAMES).toEqual([
       "list_standards",
       "limits_of_size",
       "fit",
       "it_grade",
+      "general_tolerance",
+      "general_tolerance_complies",
     ]);
     expect(new Set(PUBLIC_TOOL_NAMES).size).toBe(PUBLIC_TOOL_NAMES.length);
   });
@@ -81,5 +88,51 @@ describe("tool handlers", () => {
     expect(steps).toHaveLength(13);
     expect(steps[0]!.grades.IT7).toBe(10);
     expect(steps[12]!.grades.IT18).toBe(9700);
+  });
+});
+
+describe("ISO 2768 tool handlers", () => {
+  it("answers the common review question: +/-0.1 on a 45 mm dimension under ISO 2768-m", async () => {
+    const result = await complianceHandler({
+      nominal: 45,
+      tolerance_class: "m",
+      stated_deviation: 0.1,
+    });
+    expect(result.permitted_deviation).toBe(0.3);
+    expect(result.complies).toBe(true);
+    expect(result.unit).toBe("mm");
+  });
+
+  it("reads the class out of a drawing-style note", async () => {
+    const result = await generalHandler({
+      nominal: 45,
+      tolerance_class: "ISO 2768-m",
+    });
+    expect(result.deviation).toBe(0.3);
+    expect(result.kind).toBe("linear");
+    expect(result.applies_to).toBe("linear dimensions except broken edges");
+  });
+
+  it("routes broken edges and angles to their own tables", async () => {
+    const edge = await generalHandler({
+      nominal: 45,
+      tolerance_class: "f",
+      kind: "broken-edge",
+    });
+    expect(edge.deviation).toBe(1);
+    expect(edge.applies_to).toBe("external radii and chamfer heights");
+    const angle = await generalHandler({
+      nominal: 45,
+      tolerance_class: "f",
+      kind: "angular",
+    });
+    expect(angle.unit).toBe("deg");
+  });
+
+  it("names the withdrawn ISO 2768-2 in its table listing", async () => {
+    const result = await iso2768TableHandler();
+    expect(result.standard).toBe("iso2768-1:1989");
+    expect(String(result.note)).toMatch(/ISO 22081:2021/);
+    expect(result.steps).toHaveLength(8);
   });
 });
