@@ -1,0 +1,46 @@
+{
+  "name": "standards-mcp-server",
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "main": "dist/src/index.js",
+  "bin": {
+    "standards-mcp": "dist/src/index.js"
+  },
+  "files": [
+    "dist/src",
+    "dist/package.json",
+    "!dist/**/*.map",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "prepack": "npm run build",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/src/index.js",
+    "watch": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:integration": "vitest run --config vitest.integration.config.ts --passWithNoTests",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint src tests",
+    "fmt": "prettier --write src tests package.json tsconfig.json tsconfig.build.json vitest.config.ts vitest.integration.config.ts",
+    "fmt:check": "prettier --check src tests package.json tsconfig.json tsconfig.build.json vitest.config.ts vitest.integration.config.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "2.3.1",
+    "pino": "^10.4.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/client": "2.3.1",
+    "@types/node": "^24.0.0",
+    "oxlint": "^1.88.0",
+    "prettier": "^3.9.10",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}
