@@ -22,18 +22,19 @@ verified against the published standard are refused with a stated reason, and
 failure.
 
 **ISO 286-1:2010, with Cor 1:2013 applied** provides standard tolerance grades
-IT1 to IT18 for nominal sizes up to 500 mm. Limits of size are supported only for verified shaft classes
-`c, d, e, f, g, h, k, m, n, s` and hole classes `C, D, E, F, G, H, JS`.
-Shaft `u` is additionally supported only for nominal sizes in `(30, 40] mm`.
+IT1 to IT18 for nominal sizes up to 500 mm. Shaft limits cover `c`–`h`, `k`,
+`m`, `n`, `p`, `r`–`v`, `x`–`z`, and `za`–`zc` where Table 4/5 publishes a
+cell, using its exact size intervals and grade rules. Verified combinations of
+hole classes `C, D, E, F, G, H, JS, K, M, N, P, R, S, T, U, V, X, Y, Z, ZA,
+ZB, ZC` use Table 2/3 ∆ corrections and the M6 exception. Blank or unrepresented
+cells remain unsupported. Grade-specific shaft `j5`–`j7` and hole `J6`–`J8` use
+their own table values, not a mirrored formula.
 
 Not covered, and refused rather than guessed:
 
-- hole classes `K, M, N` and `P` to `ZC`, whose grade- and size-specific rules
-  are not yet implemented.
-- shaft deviation letters `p, r, t, v, x, y, z, za, zb, zc` until their
-  table cells and applicability are verified.
-- `j` and `J`, which are tabulated by grade rather than defined by a fundamental
-  deviation.
+- IT01, IT0, IT1 and IT2 K/M/N/P–ZC classes where Table 3 provides no ∆ value;
+  unrepresented sparse Table 2/3 cells also remain refused.
+- shaft `j` outside IT5–IT7 and hole `J` outside IT6–IT8.
 - nominal sizes above 500 mm.
 - the inch counterparts (ANSI B4.2).
 

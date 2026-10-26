@@ -439,7 +439,6 @@ const DEVIATION_BASIS: Readonly<Record<string, "es" | "ei">> = {
   f: "es",
   g: "es",
   h: "es",
-  j: "ei",
   k: "ei",
   m: "ei",
   n: "ei",
@@ -458,26 +457,8 @@ const DEVIATION_BASIS: Readonly<Record<string, "es" | "ei">> = {
 };
 
 /**
- * Shaft classes whose complete tabulations/applicability are not yet encoded.
- * Refusal is per class; it does not imply the standard's source values are suspect.
- */
-const UNSUPPORTED_SHAFT_LETTERS = new Set([
-  "p",
-  "r",
-  "t",
-  "v",
-  "x",
-  "y",
-  "z",
-  "za",
-  "zb",
-  "zc",
-]);
-
-/**
- * Exact ISO 286-1 Table 4/5 subdivisions within the coarser IT-table ranges.
- * These columns cannot be represented by the IT table's size steps. Values are
- * fundamental deviations in µm; intervals use ISO's (over, up to] convention.
+ * Exact ISO 286-1 Table 4 c-shaft subdivisions. Values are in µm and intervals
+ * use the standard's (over, up to] convention.
  */
 const SUBDIVIDED_SHAFT_DEVIATIONS: Readonly<
   Record<string, ReadonlyArray<readonly [number, number, number]>>
@@ -507,42 +488,181 @@ const SUBDIVIDED_SHAFT_DEVIATIONS: Readonly<
     [400, 450, -440],
     [450, 500, -480],
   ],
-  s: [
-    [0, 3, 14],
-    [3, 6, 19],
-    [6, 10, 23],
-    [10, 18, 28],
-    [18, 30, 35],
-    [30, 50, 43],
-    [50, 65, 53],
-    [65, 80, 59],
-    [80, 100, 71],
-    [100, 120, 79],
-    [120, 140, 92],
-    [140, 160, 100],
-    [160, 180, 108],
-    [180, 200, 122],
-    [200, 225, 130],
-    [225, 250, 140],
-    [250, 280, 158],
-    [280, 315, 170],
-    [315, 355, 190],
-    [355, 400, 208],
-    [400, 450, 232],
-    [450, 500, 252],
-  ],
-  // Table 5 distinguishes 30–40 mm (+60 µm) from 40–50 mm (+70 µm).
-  u: [[30, 40, 60]],
 };
 
-/** `u` is intentionally supported only on the source-verified 30–40 mm row. */
-const PARTIALLY_SUPPORTED_SHAFT_LETTERS = new Set(["u"]);
+/** ISO 286-1 Table 5 row boundaries and fundamental deviations (µm). */
+const SHAFT_TABLE5_RANGES: ReadonlyArray<readonly [number, number]> = [
+  [0, 3],
+  [3, 6],
+  [6, 10],
+  [10, 14],
+  [14, 18],
+  [18, 24],
+  [24, 30],
+  [30, 40],
+  [40, 50],
+  [50, 65],
+  [65, 80],
+  [80, 100],
+  [100, 120],
+  [120, 140],
+  [140, 160],
+  [160, 180],
+  [180, 200],
+  [200, 225],
+  [225, 250],
+  [250, 280],
+  [280, 315],
+  [315, 355],
+  [355, 400],
+  [400, 450],
+  [450, 500],
+];
 
-/** These hole classes have rules/exceptions beyond a shaft mirror. */
-const UNSUPPORTED_HOLE_LETTERS = new Set([
-  "k",
-  "m",
-  "n",
+/**
+ * Table 5: lower shaft deviations ei in µm. Null preserves an unpopulated
+ * standard cell; these classes are accepted only where a value is published.
+ */
+const SHAFT_TABLE5: Readonly<Record<string, readonly (number | null)[]>> = {
+  p: [
+    6, 12, 15, 18, 18, 22, 22, 26, 26, 32, 32, 37, 37, 43, 43, 43, 50, 50, 50,
+    56, 56, 62, 62, 68, 68,
+  ],
+  r: [
+    10, 15, 19, 23, 23, 28, 28, 34, 34, 41, 43, 51, 54, 63, 65, 68, 77, 80, 84,
+    94, 98, 108, 114, 126, 132,
+  ],
+  s: [
+    14, 19, 23, 28, 28, 35, 35, 43, 43, 53, 59, 71, 79, 92, 100, 108, 122, 130,
+    140, 158, 170, 190, 208, 232, 252,
+  ],
+  t: [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    41,
+    48,
+    54,
+    66,
+    75,
+    91,
+    104,
+    122,
+    134,
+    146,
+    166,
+    180,
+    196,
+    218,
+    240,
+    268,
+    294,
+    330,
+    360,
+  ],
+  u: [
+    18, 23, 28, 33, 33, 41, 48, 60, 70, 87, 102, 124, 144, 170, 190, 210, 236,
+    258, 284, 315, 350, 390, 435, 490, 540,
+  ],
+  v: [
+    null,
+    null,
+    null,
+    null,
+    39,
+    47,
+    55,
+    68,
+    81,
+    102,
+    120,
+    146,
+    172,
+    202,
+    228,
+    252,
+    284,
+    310,
+    340,
+    385,
+    425,
+    475,
+    530,
+    595,
+    660,
+  ],
+  x: [
+    20, 28, 34, 40, 45, 54, 64, 80, 97, 122, 146, 178, 210, 248, 280, 310, 350,
+    385, 425, 475, 525, 590, 660, 740, 820,
+  ],
+  y: [
+    null,
+    null,
+    null,
+    null,
+    null,
+    63,
+    75,
+    94,
+    114,
+    144,
+    174,
+    214,
+    254,
+    300,
+    340,
+    380,
+    425,
+    470,
+    520,
+    580,
+    650,
+    730,
+    820,
+    920,
+    1000,
+  ],
+  z: [
+    26, 35, 42, 50, 60, 73, 88, 112, 136, 172, 210, 258, 310, 365, 415, 465,
+    520, 575, 640, 710, 790, 900, 1000, 1100, 1250,
+  ],
+  za: [
+    32, 42, 52, 64, 77, 98, 118, 148, 180, 226, 274, 335, 400, 470, 535, 600,
+    670, 740, 820, 920, 1000, 1150, 1300, 1450, 1600,
+  ],
+  zb: [
+    40, 50, 67, 90, 108, 136, 160, 200, 242, 300, 360, 445, 525, 620, 700, 780,
+    880, 960, 1050, 1200, 1300, 1500, 1650, 1850, 2100,
+  ],
+  zc: [
+    60, 80, 97, 130, 150, 188, 218, 274, 325, 405, 480, 585, 690, 800, 900,
+    1000, 1150, 1250, 1350, 1550, 1700, 1900, 2100, 2400, 2600,
+  ],
+};
+
+/** ISO 286-1 Table 3 ∆ values, keyed to the standard's exact size steps. */
+const DELTA_TABLE: ReadonlyArray<readonly [number, number, readonly number[]]> =
+  [
+    [0, 3, [1, 1.5, 1, 3, 4, 6]],
+    [3, 6, [1, 1.5, 2, 3, 6, 7]],
+    [6, 10, [1, 2, 3, 3, 7, 9]],
+    [10, 18, [1, 2, 3, 3, 7, 9]],
+    [18, 30, [1.5, 2, 3, 4, 8, 12]],
+    [30, 50, [1.5, 3, 4, 5, 9, 14]],
+    [50, 80, [2, 3, 5, 6, 11, 16]],
+    [80, 120, [2, 4, 5, 7, 13, 19]],
+    [120, 180, [3, 4, 6, 7, 15, 23]],
+    [180, 250, [3, 4, 6, 9, 17, 26]],
+    [250, 315, [4, 4, 7, 9, 20, 29]],
+    [315, 400, [4, 5, 7, 11, 21, 32]],
+    [400, 500, [5, 5, 7, 13, 23, 34]],
+  ];
+
+const DELTA_HOLE_LETTERS = new Set(["k", "m", "n"]);
+const INTERFERENCE_HOLE_LETTERS = new Set([
   "p",
   "r",
   "s",
@@ -556,6 +676,94 @@ const UNSUPPORTED_HOLE_LETTERS = new Set([
   "zb",
   "zc",
 ]);
+
+/** ISO 286-1 Table 4: j has grade-specific es values, not one fundamental deviation. */
+const SHAFT_J_ES_UM: Readonly<Record<string, readonly [number, number][]>> = {
+  "0-3": [
+    [5, -2],
+    [6, -2],
+    [7, -4],
+  ],
+  "3-6": [
+    [5, -2],
+    [6, -2],
+    [7, -4],
+  ],
+  "6-10": [
+    [5, -2],
+    [6, -2],
+    [7, -5],
+  ],
+  "10-18": [
+    [5, -3],
+    [6, -3],
+    [7, -6],
+  ],
+  "18-30": [
+    [5, -4],
+    [6, -4],
+    [7, -8],
+  ],
+  "30-50": [
+    [5, -5],
+    [6, -5],
+    [7, -10],
+  ],
+  "50-80": [
+    [5, -7],
+    [6, -7],
+    [7, -12],
+  ],
+  "80-120": [
+    [5, -9],
+    [6, -9],
+    [7, -15],
+  ],
+  "120-180": [
+    [5, -11],
+    [6, -11],
+    [7, -18],
+  ],
+  "180-250": [
+    [5, -13],
+    [6, -13],
+    [7, -21],
+  ],
+  "250-315": [
+    [5, -16],
+    [6, -16],
+    [7, -26],
+  ],
+  "315-400": [
+    [5, -18],
+    [6, -18],
+    [7, -28],
+  ],
+  "400-500": [
+    [5, -20],
+    [6, -20],
+    [7, -32],
+  ],
+};
+
+/** ISO 286-1 Table 2: hole J upper deviations ES for grades 6–8 (µm). */
+const HOLE_J_ES_UM: Readonly<
+  Record<string, readonly [number, number, number]>
+> = {
+  "0-3": [2, 4, 6],
+  "3-6": [5, 6, 10],
+  "6-10": [5, 8, 12],
+  "10-18": [6, 10, 15],
+  "18-30": [8, 12, 20],
+  "30-50": [10, 14, 24],
+  "50-80": [13, 18, 28],
+  "80-120": [16, 22, 34],
+  "120-180": [18, 26, 41],
+  "180-250": [22, 30, 47],
+  "250-315": [25, 36, 55],
+  "315-400": [29, 39, 60],
+  "400-500": [33, 43, 66],
+};
 
 const GRADE_COLUMNS = [
   "IT01",
@@ -666,9 +874,8 @@ export interface Limits {
 /**
  * Limits of size for one tolerance class, e.g. `40H7` or `40g6`.
  *
- * Hole limits are mirrored from same-letter shaft values only for the explicitly
- * supported simple-mirror classes. Classes with independent hole rules or grade
- * exceptions are refused rather than passed through this calculation.
+ * The hole basis is handled by its own Table 2/3 rules where deviations are not
+ * simple mirrors, including ∆ corrections and the documented M6 exception.
  */
 export function limitsOfSize(nominal: number, designation: string): Limits {
   const match = /^([A-Za-z]{1,2})\s?(\d{1,2})$/.exec(designation.trim());
@@ -712,6 +919,17 @@ export function limitsOfSize(nominal: number, designation: string): Limits {
   } else if (upperLetter === "JS" && hole) {
     upper = tolerance / 2;
     lower = -tolerance / 2;
+  } else if (upperLetter === "J" && hole) {
+    const values = HOLE_J_ES_UM[step.key];
+    const gradeIndex = grade - 6;
+    if (!values || gradeIndex < 0 || gradeIndex > 2) {
+      throw domainError(
+        "unsupported_deviation",
+        `hole J is tabulated only for IT6–IT8 in ISO 286-1 Table 2; ${letter}${grade} is not covered`,
+      );
+    }
+    upper = values[gradeIndex]! / 1000;
+    lower = upper - tolerance;
   } else if (upperLetter === "H") {
     // Zero-deviation shaft: the tolerance sits below the nominal.
     upper = 0;
@@ -721,23 +939,26 @@ export function limitsOfSize(nominal: number, designation: string): Limits {
     lower = -tolerance / 2;
   } else {
     const shaftKey = letter.toLowerCase();
-    if (hole && UNSUPPORTED_HOLE_LETTERS.has(shaftKey)) {
-      throw domainError(
-        "unsupported_deviation",
-        `hole deviation '${letter}' has grade- and size-specific rules that are not implemented; use only verified hole classes or consult ISO 286-1 Tables 2 and 3`,
-      );
-    }
     const table = SHAFT_DEVIATIONS[step.key]!;
     const subdivided = SUBDIVIDED_SHAFT_DEVIATIONS[shaftKey]?.find(
       ([over, upTo]) => nominal > over && nominal <= upTo,
     )?.[2];
-    const hasDedicatedRanges =
-      SUBDIVIDED_SHAFT_DEVIATIONS[shaftKey] !== undefined;
-    let tabulated = hasDedicatedRanges ? subdivided : table[shaftKey];
+    const table5Index = SHAFT_TABLE5_RANGES.findIndex(
+      ([over, upTo]) => nominal > over && nominal <= upTo,
+    );
+    const table5Row = SHAFT_TABLE5[shaftKey]?.[table5Index];
+    const jDeviation = SHAFT_J_ES_UM[step.key]?.find(
+      ([jGrade]) => jGrade === grade,
+    )?.[1];
+    let tabulated = SHAFT_TABLE5[shaftKey]
+      ? table5Row
+      : SUBDIVIDED_SHAFT_DEVIATIONS[shaftKey]
+        ? subdivided
+        : table[shaftKey];
+    if (shaftKey === "j" && !hole) tabulated = jDeviation;
     // For sizes above 3 through 500 mm, Table 5 gives a nonzero k deviation
     // only for IT4–IT7. The other grade column is zero.
     if (
-      !hole &&
       shaftKey === "k" &&
       nominal > 3 &&
       nominal <= 500 &&
@@ -745,51 +966,89 @@ export function limitsOfSize(nominal: number, designation: string): Limits {
     ) {
       tabulated = 0;
     }
-    // j is checked first: it is present in the table for some steps but the
-    // standard gives it no fundamental deviation and tabulates it per grade, so
-    // the table value is not the deviation.
+
     if (
-      shaftKey === "j" ||
-      tabulated === undefined ||
-      (PARTIALLY_SUPPORTED_SHAFT_LETTERS.has(shaftKey) &&
-        subdivided === undefined) ||
-      UNSUPPORTED_SHAFT_LETTERS.has(shaftKey)
+      hole &&
+      (DELTA_HOLE_LETTERS.has(shaftKey) ||
+        INTERFERENCE_HOLE_LETTERS.has(shaftKey))
     ) {
-      if (shaftKey === "j") {
+      if (tabulated === undefined || tabulated === null) {
         throw domainError(
           "unsupported_deviation",
-          "'j' has no fundamental deviation or formula in the standard; it is tabulated " +
-            "per grade and is not implemented here",
+          `hole deviation '${letter}' has no published Table 2/3 cell at ${nominal} mm`,
         );
       }
-      throw domainError(
-        "unsupported_deviation",
-        `the shaft class '${letter}' is not supported for this size and grade. ` +
-          `Only source-verified letter/size/grade combinations are returned. Fully supported shaft letters: ` +
-          `${Object.keys(DEVIATION_BASIS)
-            .filter(
-              (k) =>
-                k !== "j" &&
-                !UNSUPPORTED_SHAFT_LETTERS.has(k) &&
-                !PARTIALLY_SUPPORTED_SHAFT_LETTERS.has(k),
-            )
-            .join(
-              ", ",
-            )}; partial coverage: u only for nominal sizes (30, 40] mm`,
-      );
-    }
-    const basis = DEVIATION_BASIS[shaftKey]!;
-    // A hole is the mirror of the same-letter shaft about the zero line: its upper
-    // deviation is the negated shaft lower deviation.
-    const shaftUpper =
-      basis === "es" ? tabulated / 1000 : tabulated / 1000 + tolerance;
-    const shaftLower = shaftUpper - tolerance;
-    if (hole) {
-      upper = -shaftLower;
-      lower = -shaftUpper;
+      const deltaApplies = DELTA_HOLE_LETTERS.has(shaftKey)
+        ? grade <= 8
+        : grade <= 7;
+      let delta = 0;
+      if (deltaApplies) {
+        const deltaGrade = [3, 4, 5, 6, 7, 8].indexOf(grade);
+        const deltaRow = DELTA_TABLE.find(
+          ([over, upTo]) => nominal > over && nominal <= upTo,
+        );
+        if (deltaGrade < 0 || !deltaRow) {
+          throw domainError(
+            "unsupported_deviation",
+            `ISO 286-1 Table 3 does not publish a ∆ correction for ${letter}${grade} at ${nominal} mm`,
+          );
+        }
+        delta = deltaRow[2][deltaGrade]!;
+      }
+      let es = -tabulated + delta;
+      // ISO 286-1 Table 2, footnote b: M6 has ES = −9 µm in (250, 315] mm.
+      if (shaftKey === "m" && grade === 6 && nominal > 250 && nominal <= 315) {
+        es = -9;
+      }
+      // Table 3 footnote b excludes N above IT8 for nominal sizes through 1 mm.
+      if (shaftKey === "n" && grade > 8 && nominal <= 1) {
+        throw domainError(
+          "unsupported_deviation",
+          "ISO 286-1 Table 3 excludes hole N above IT8 for nominal sizes up to 1 mm",
+        );
+      }
+      upper = es / 1000;
+      lower = upper - tolerance;
     } else {
-      upper = shaftUpper;
-      lower = shaftLower;
+      // j is grade-specific; its table value is not a general fundamental deviation.
+      if (
+        (shaftKey === "j" && (hole || jDeviation === undefined)) ||
+        tabulated === undefined ||
+        tabulated === null
+      ) {
+        if (shaftKey === "j") {
+          throw domainError(
+            "unsupported_deviation",
+            "shaft j is tabulated only for IT5–IT7 in ISO 286-1 Table 4",
+          );
+        }
+        throw domainError(
+          "unsupported_deviation",
+          `the shaft class '${letter}' is not supported for this size and grade. ` +
+            `Only source-verified letter/size/grade combinations are returned. ` +
+            `${Object.keys(DEVIATION_BASIS).join(
+              ", ",
+            )}; blank Table 5 cells remain unsupported`,
+        );
+      }
+      if (shaftKey === "j" && !hole) {
+        upper = jDeviation! / 1000;
+        lower = upper - tolerance;
+      } else {
+        const basis = DEVIATION_BASIS[shaftKey]!;
+        // A hole is the mirror of the same-letter shaft about the zero line: its upper
+        // deviation is the negated shaft lower deviation.
+        const shaftUpper =
+          basis === "es" ? tabulated / 1000 : tabulated / 1000 + tolerance;
+        const shaftLower = shaftUpper - tolerance;
+        if (hole) {
+          upper = -shaftLower;
+          lower = -shaftUpper;
+        } else {
+          upper = shaftUpper;
+          lower = shaftLower;
+        }
+      }
     }
   }
 

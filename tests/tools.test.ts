@@ -68,6 +68,20 @@ describe("tool handlers", () => {
     expect(result.standard).toBe("iso286-1:2010+cor1:2013");
   });
 
+  it("exposes corrected K/M/N, P–ZC, and J hole classes", async () => {
+    const k = await limitsHandler({ nominal: 20, designation: "K7" });
+    expect(k.upper_deviation).toBe(0.006);
+    expect(k.lower_deviation).toBe(-0.015);
+
+    const p = await limitsHandler({ nominal: 28, designation: "P9" });
+    expect(p.upper_deviation).toBe(-0.022);
+    expect(p.lower_deviation).toBe(-0.074);
+
+    const j = await limitsHandler({ nominal: 20, designation: "J6" });
+    expect(j.upper_deviation).toBe(0.008);
+    expect(j.lower_deviation).toBe(-0.005);
+  });
+
   it("reports the standard transition fit", async () => {
     const result = await fitHandler({ nominal: 36, hole: "H7", shaft: "n6" });
     expect(result.type).toBe("transition");

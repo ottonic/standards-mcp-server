@@ -86,30 +86,63 @@ describe("ISO 286 limits of size", () => {
     expect(limitsOfSize(20, "H7").edition).toBe("iso286-1:2010+cor1:2013");
   });
 
-  it("refuses classes whose tables and applicability are not implemented", () => {
+  it("refuses only classes whose tables are not implemented", () => {
     // Refusing beats approximating: a wrong interference fit reads as a real
     // answer, while a stated gap sends the caller to the standard.
-    expect(() => limitsOfSize(40, "U6")).toThrowError(
-      /grade- and size-specific/,
-    );
-    expect(() => limitsOfSize(20, "p6")).toThrowError(/not supported/);
-    expect(() => limitsOfSize(20, "K7")).toThrowError(
-      /grade- and size-specific/,
-    );
-    expect(() => limitsOfSize(60, "M6")).toThrowError(
-      /grade- and size-specific/,
-    );
-    expect(() => limitsOfSize(20, "N6")).toThrowError(
-      /grade- and size-specific/,
-    );
-    expect(() => limitsOfSize(36, "S6")).toThrowError(
-      /grade- and size-specific/,
-    );
-    expect(() => limitsOfSize(45, "u6")).toThrowError(/not supported/);
-    expect(() => limitsOfSize(30, "u6")).toThrowError(/not supported/);
-    expect(() => limitsOfSize(20, "j6")).toThrowError(
-      /no fundamental deviation/,
-    );
+    expect(limitsOfSize(20, "p6").lowerDeviation).toBeCloseTo(0.022, 9);
+    expect(limitsOfSize(45, "u6").lowerDeviation).toBeCloseTo(0.07, 9);
+    expect(limitsOfSize(30, "u6").lowerDeviation).toBeCloseTo(0.048, 9);
+    expect(() => limitsOfSize(20, "j8")).toThrowError(/IT5–IT7/);
+    expect(() => limitsOfSize(20, "J5")).toThrowError(/IT6–IT8/);
+    expect(() => limitsOfSize(20, "K2")).toThrowError(/does not publish a ∆/);
+    expect(() => limitsOfSize(20, "P2")).toThrowError(/does not publish a ∆/);
+  });
+
+  it("uses the grade-specific j/J tables rather than a guessed mirror", () => {
+    expect(limitsOfSize(20, "j5").upperDeviation).toBeCloseTo(-0.004, 9);
+    expect(limitsOfSize(20, "j6").upperDeviation).toBeCloseTo(-0.004, 9);
+    expect(limitsOfSize(20, "j7").upperDeviation).toBeCloseTo(-0.008, 9);
+    expect(limitsOfSize(20, "J6").upperDeviation).toBeCloseTo(0.008, 9);
+    expect(limitsOfSize(20, "J7").upperDeviation).toBeCloseTo(0.012, 9);
+    expect(limitsOfSize(20, "J8").upperDeviation).toBeCloseTo(0.02, 9);
+  });
+
+  it("applies Table 3 delta corrections and the M6 exception for holes", () => {
+    const k = limitsOfSize(20, "K7");
+    expect(k.upperDeviation).toBeCloseTo(0.006, 9);
+    expect(k.lowerDeviation).toBeCloseTo(-0.015, 9);
+
+    const m = limitsOfSize(60, "M6");
+    expect(m.upperDeviation).toBeCloseTo(-0.005, 9);
+    expect(m.lowerDeviation).toBeCloseTo(-0.024, 9);
+
+    const mException = limitsOfSize(260, "M6");
+    expect(mException.upperDeviation).toBeCloseTo(-0.009, 9);
+    expect(mException.lowerDeviation).toBeCloseTo(-0.041, 9);
+    expect(limitsOfSize(250, "M6").upperDeviation).toBeCloseTo(-0.008, 9);
+    expect(limitsOfSize(315, "M6").upperDeviation).toBeCloseTo(-0.009, 9);
+    expect(limitsOfSize(315.001, "M6").upperDeviation).toBeCloseTo(-0.01, 9);
+
+    const n = limitsOfSize(20, "N6");
+    expect(n.upperDeviation).toBeCloseTo(-0.011, 9);
+    expect(n.lowerDeviation).toBeCloseTo(-0.024, 9);
+  });
+
+  it("applies Table 3 delta values to P–ZC holes at the specified grades", () => {
+    const p = limitsOfSize(28, "P9");
+    expect(p.upperDeviation).toBeCloseTo(-0.022, 9);
+    expect(p.lowerDeviation).toBeCloseTo(-0.074, 9);
+
+    const u = limitsOfSize(40, "U6");
+    expect(u.upperDeviation).toBeCloseTo(-0.055, 9);
+    expect(u.lowerDeviation).toBeCloseTo(-0.071, 9);
+
+    const s = limitsOfSize(36, "S6");
+    expect(s.upperDeviation).toBeCloseTo(-0.038, 9);
+    expect(s.lowerDeviation).toBeCloseTo(-0.054, 9);
+
+    // RoyMech's coarse ZC table says −490 µm here; ISO Table 3 says −480 µm.
+    expect(limitsOfSize(70, "ZC8").upperDeviation).toBeCloseTo(-0.48, 9);
   });
 
   it.each([
@@ -158,12 +191,21 @@ describe("ISO 286 limits of size", () => {
     },
   );
 
-  it("supports u only on the verified (30, 40] mm row", () => {
-    const lowerInterior = limitsOfSize(30.001, "u6");
-    expect(lowerInterior.lowerDeviation).toBe(0.06);
+  it("uses the source interval rows for p–zc shaft classes", () => {
+    expect(limitsOfSize(40, "p6").lowerDeviation).toBeCloseTo(0.026, 9);
+    expect(limitsOfSize(40.001, "p6").lowerDeviation).toBeCloseTo(0.026, 9);
+    expect(limitsOfSize(50, "r6").lowerDeviation).toBeCloseTo(0.034, 9);
+    expect(limitsOfSize(65, "v6").lowerDeviation).toBeCloseTo(0.102, 9);
+    expect(limitsOfSize(80, "za6").lowerDeviation).toBeCloseTo(0.274, 9);
+    expect(limitsOfSize(500, "zc6").lowerDeviation).toBeCloseTo(2.6, 9);
+    expect(() => limitsOfSize(10, "t6")).toThrowError(/blank Table 5 cells/);
+  });
+
+  it("supports u across its published Table 5 intervals", () => {
     const result = limitsOfSize(40, "u6");
     expect(result.upperDeviation).toBe(0.076);
     expect(result.lowerDeviation).toBe(0.06);
+    expect(limitsOfSize(50, "u6").lowerDeviation).toBeCloseTo(0.07, 9);
   });
 
   it.each([
