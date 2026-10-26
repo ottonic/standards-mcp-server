@@ -463,27 +463,37 @@ const DEVIATION_BASIS: Readonly<Record<string, "es" | "ei">> = {
  * The delta correction, applied only where the standard's own worked examples
  * demand it.
  *
- * This is deliberately narrow. Measurement against those examples showed:
+ * **Not yet implemented, and the reason is now understood.** ISO 286 applies Δ to
+ * K, M and N up to and including IT8 and to P to ZC up to and including IT7, where
+ * Δ = IT(n) − IT(n−1) is read from a table that is itself subdivided (30–40 mm
+ * separately from 40–50 mm). The standard's own worked example:
  *
- *   - `n6` at 36 mm is es +33 / ei +17, and the tabulated +17 is exactly the
- *     formula value `5·D^0.34 = 17.3`, so N needs **no** shift — applying one
- *     produced +38 instead of +33.
- *   - `s6` at 36 mm and `p6` at 20 mm likewise match with no shift.
- *   - `U6` at 40 mm is ES -55 / EI -71, which is the tabulated -60 shifted by
- *     -1..-6 depending on how the range is read.
+ *   40 U6 — IT6 is 16 µm; Δ is 5 µm over 30–40 mm at IT6; U is −60 µm over 30–40 mm,
+ *   so ES = −60 + 5 = −55 and EI = −55 − 16 = −71.
  *
- * Because the U-family rule could not be reproduced reliably from the examples,
- * those letters are refused by `limitsOfSize` rather than approximated, and this
- * function stays a no-op until a verified source for their range is available.
+ * Returns zero until the Δ table is encoded, which is why the letters that depend
+ * on it are refused rather than approximated — see `UNVERIFIED_LETTERS`.
  */
 function deltaCorrection(): number {
   return 0;
 }
 
 /**
- * Letters whose tabulated value could not be reproduced from the standard's own
- * worked examples. Refusing is the honest answer: a wrong interference fit is
- * worse than a stated gap.
+ * Letters refused until the deviation table is keyed the way the standard keys it.
+ *
+ * **The earlier diagnosis was wrong, and this note exists so it is not repeated.**
+ * These letters were refused because their values could not be reproduced from the
+ * standard's worked examples, and the conclusion drawn was that the letters were
+ * unreliable. The real cause is the size partition. ISO 286 NOTE 4 says the ranges
+ * in the deviation tables are "in many cases (for deviations a to c and r to zc …)
+ * subdivisions of the main ranges of Table 1": IT grades step 30–50 mm, but these
+ * deviations step 30–40 then 40–50. One row per IT step therefore stores the lower
+ * subdivision's value and is silently wrong above it — U is −60 over 30–40 mm and
+ * −70 over 40–50 mm. The same fault affects `s`, which is implemented and so looks
+ * like it works: s6 at 36 mm is right, s6 at 45 mm is not.
+ *
+ * Fixing it means re-keying the deviation table to the standard's steps and adding
+ * the Δ table; the letters themselves are sound. Until then they are refused.
  */
 const UNVERIFIED_LETTERS = new Set([
   "p",

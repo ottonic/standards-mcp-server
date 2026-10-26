@@ -61,7 +61,7 @@ export const TOOL_REGISTRY: ToolSpec[] = [
             "shaft letters k, m, n and their hole equivalents",
           ],
           does_not_cover: [
-            "deviation letters p, r, t, u, v, x, y, z, za, zb, zc: the range rule for these could not be reproduced from the standard's worked examples, so they are refused",
+            "deviation letters p, r, t, u, v, x, y, z, za, zb, zc: ISO 286 subdivides the size ranges for these (30-40 mm separately from 40-50 mm) and applies a grade-dependent delta to their hole equivalents, and this server keys both by the coarser IT-grade steps. They are refused until that is corrected, because a fit computed from the wrong subdivision is silently wrong",
             "nominal sizes above 500 mm",
             "the inch counterparts (ANSI B4.2)",
           ],
