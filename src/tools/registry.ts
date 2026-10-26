@@ -52,16 +52,18 @@ export const TOOL_REGISTRY: ToolSpec[] = [
     handler: async () => ({
       standards: [
         {
-          id: "iso286-1:2010",
+          id: "iso286-1:2010+cor1:2013",
           title: "ISO code system for tolerances on linear sizes",
           covers: [
             "standard tolerance grades IT1 to IT18, sizes up to 500 mm",
-            "limits of size for deviation letters c, d, e, f, g, h",
-            "j is not implemented: the standard gives it no fundamental deviation",
-            "shaft letters k, m, n and their hole equivalents",
+            "verified limits of size for shaft deviation letters c, d, e, f, g, h, k, m, n and s, with their ISO-defined size ranges",
+            "shaft u is supported only for nominal sizes above 30 mm through 40 mm",
+            "verified hole classes C, D, E, F, G, H and JS",
+            "hole deviations K, M, N and P to ZC are refused: their ISO grade/size rules are not yet implemented",
+            "j is refused: its deviations are tabulated by grade rather than defined by a fundamental deviation",
           ],
           does_not_cover: [
-            "deviation letters p, r, t, u, v, x, y, z, za, zb, zc: ISO 286 subdivides the size ranges for these (30-40 mm separately from 40-50 mm) and applies a grade-dependent delta to their hole equivalents, and this server keys both by the coarser IT-grade steps. They are refused until that is corrected, because a fit computed from the wrong subdivision is silently wrong",
+            "shaft deviation letters p, r, t, v, x, y, z, za, zb, zc: table rows are not yet verified for every supported size and grade",
             "nominal sizes above 500 mm",
             "the inch counterparts (ANSI B4.2)",
           ],

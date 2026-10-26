@@ -65,7 +65,7 @@ describe("tool handlers", () => {
     expect(result.lower_limit).toBe(36);
     expect(result.upper_limit).toBe(36.025);
     expect(result.hole).toBe(true);
-    expect(result.standard).toBe("iso286-1:2010");
+    expect(result.standard).toBe("iso286-1:2010+cor1:2013");
   });
 
   it("reports the standard transition fit", async () => {
@@ -77,6 +77,22 @@ describe("tool handlers", () => {
       upper_deviation: 0.025,
       lower_deviation: 0,
     });
+    expect(result.minimum_interference).toBe(0);
+  });
+
+  it("returns both interference bounds for a fully interfering fit", async () => {
+    const result = await fitHandler({ nominal: 36, hole: "H7", shaft: "s6" });
+    expect(result.type).toBe("interference");
+    expect(result.minimum_interference).toBeCloseTo(0.018, 9);
+    expect(result.maximum_interference).toBeCloseTo(0.059, 9);
+  });
+
+  it("exposes the source-bounded 40 H7/u6 fit through the MCP handler", async () => {
+    const result = await fitHandler({ nominal: 40, hole: "H7", shaft: "u6" });
+    expect(result.type).toBe("interference");
+    expect(result.minimum_interference).toBeCloseTo(0.035, 9);
+    expect(result.maximum_interference).toBeCloseTo(0.076, 9);
+    expect(result.standard).toBe("iso286-1:2010+cor1:2013");
   });
 
   it("reports a grade in both units with the size step it came from", async () => {

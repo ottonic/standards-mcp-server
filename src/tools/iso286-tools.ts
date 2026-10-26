@@ -76,6 +76,7 @@ export async function fitHandler(args: z.output<typeof fitSchema>) {
     type: result.type,
     minimum_clearance: result.minimumClearance,
     maximum_clearance: result.maximumClearance,
+    minimum_interference: result.minimumInterference,
     maximum_interference: result.maximumInterference,
     unit: result.unit,
     standard: ISO_286_EDITION,

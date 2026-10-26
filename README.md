@@ -21,15 +21,19 @@ verified against the published standard are refused with a stated reason, and
 `list_standards` says so up front, so a caller never has to discover a gap from a
 failure.
 
-**ISO 286-1:2010** covers standard tolerance grades IT1 to IT18 for nominal sizes
-up to 500 mm, and limits of size for the deviation letters `c, d, e, f, g, h, j,
-k, m, n` and their hole counterparts.
+**ISO 286-1:2010, with Cor 1:2013 applied** provides standard tolerance grades
+IT1 to IT18 for nominal sizes up to 500 mm. Limits of size are supported only for verified shaft classes
+`c, d, e, f, g, h, k, m, n, s` and hole classes `C, D, E, F, G, H, JS`.
+Shaft `u` is additionally supported only for nominal sizes in `(30, 40] mm`.
 
 Not covered, and refused rather than guessed:
 
-- the deviation letters `p, r, t, u, v, x, y, z, za, zb, zc`. Their published
-  range rule could not be reproduced from the standard's own worked examples. A
-  wrong interference fit reads as a real answer, so these are refused.
+- hole classes `K, M, N` and `P` to `ZC`, whose grade- and size-specific rules
+  are not yet implemented.
+- shaft deviation letters `p, r, t, v, x, y, z, za, zb, zc` until their
+  table cells and applicability are verified.
+- `j` and `J`, which are tabulated by grade rather than defined by a fundamental
+  deviation.
 - nominal sizes above 500 mm.
 - the inch counterparts (ANSI B4.2).
 
