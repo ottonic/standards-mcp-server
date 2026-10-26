@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import {
   GRADES,
@@ -53,6 +54,7 @@ describe("material unit conversion", () => {
   it("passes through dimensionless properties unchanged", () => {
     expect(convertProperty("pr", { val: 0.33 })?.[1].value).toBe(0.33);
     expect(convertProperty("pr", { val: 0.33 })?.[1].unit).toBe("1");
+    // Upstream README's units table declares elongation as "% (unitless)".
     expect(convertProperty("elongation", { val: 12 })?.[1].unit).toBe(
       "percent",
     );
@@ -75,6 +77,10 @@ describe("material unit conversion", () => {
   it("carries the source and its licence", () => {
     expect(MATERIALS_SOURCE.name).toBe("KittyCAD/material-properties");
     expect(MATERIALS_SOURCE.license).toBe("Apache-2.0");
+    expect(MATERIALS_SOURCE.revision).toBe(
+      `sha256:${createHash("sha256").update(JSON.stringify(GRADES)).digest("hex")}`,
+    );
+    expect(MATERIALS_SOURCE.revision_note).toMatch(/not an upstream release/i);
   });
 });
 
@@ -121,6 +127,10 @@ describe("material tools", () => {
     const result = await lookupHandler({ material: "6061-T6" });
     expect(result.found).toBe(true);
     expect(result.exact).toBe(true);
+    expect(result.source).toMatchObject({
+      name: MATERIALS_SOURCE.name,
+      revision: MATERIALS_SOURCE.revision,
+    });
     const first = (result.matches as Array<{ alloy: string }>)[0]!;
     expect(first.alloy).toBe("6061");
   });

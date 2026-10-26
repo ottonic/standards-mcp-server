@@ -28,11 +28,18 @@ export interface Length {
   unit: "mm";
 }
 
+export interface Angle {
+  value: number;
+  unit: "deg";
+}
+
+type Measurement = Length | Angle;
+
 export interface Threshold {
   /** Below this is an error: the feature cannot be made as drawn. */
-  error?: { min?: Length; ratioOfThickness?: number };
+  error?: { min?: Measurement; ratioOfThickness?: number };
   /** Below this is a warning: makeable, but worth questioning. */
-  warning?: { min?: Length; ratioOfThickness?: number };
+  warning?: { min?: Measurement; ratioOfThickness?: number };
 }
 
 export interface ProcessLimits {
@@ -54,6 +61,7 @@ export const PROCESS_SOURCE = {
 };
 
 const mm = (value: number): Length => ({ value, unit: "mm" });
+const deg = (value: number): Angle => ({ value, unit: "deg" });
 
 /**
  * Published limits, per process. Values are the commonly cited figures; each
@@ -130,8 +138,8 @@ export const PROCESS_LIMITS: Readonly<Record<string, ProcessLimits>> = {
         warning: { min: mm(1.2) },
       },
       draft_angle: {
-        error: { min: mm(0.5) },
-        warning: { min: mm(1) },
+        error: { min: deg(0.5) },
+        warning: { min: deg(1) },
       },
       rib_thickness: {
         // Ribs thinner than roughly two thirds of the wall avoid sink marks.
@@ -228,9 +236,16 @@ export function checkLimit(
 
   const resolve = (
     band: Threshold["error"],
-  ): { limit: number; kind: "absolute" | "thickness-ratio" } | undefined => {
+  ):
+    | {
+        limit: number;
+        unit: Measurement["unit"];
+        kind: "absolute" | "thickness-ratio";
+      }
+    | undefined => {
     if (!band) return undefined;
-    if (band.min) return { limit: band.min.value, kind: "absolute" };
+    if (band.min)
+      return { limit: band.min.value, unit: band.min.unit, kind: "absolute" };
     if (band.ratioOfThickness !== undefined) {
       if (options.thickness === undefined) {
         throw domainError(
@@ -241,6 +256,7 @@ export function checkLimit(
       }
       return {
         limit: band.ratioOfThickness * options.thickness,
+        unit: "mm",
         kind: "thickness-ratio",
       };
     }
@@ -269,7 +285,7 @@ export function checkLimit(
     feature,
     process,
     measured,
-    unit: "mm",
+    unit: applied.unit,
     verdict,
     thresholdApplied: { kind: applied.kind, value: applied.limit },
     limit: applied.limit,

@@ -16,6 +16,7 @@
  * data can call them at initialisation time without a circular import.
  */
 
+import { createHash } from "node:crypto";
 import type { MaterialGrade } from "./material-conversion.js";
 import { MATERIAL_GRADES } from "../data/materials.generated.js";
 
@@ -26,10 +27,18 @@ export type {
 } from "./material-conversion.js";
 export { buildGrades, convertProperty } from "./material-conversion.js";
 
+/** Digest of the exact converted material snapshot shipped by this build. */
+const MATERIALS_DATASET_REVISION = `sha256:${createHash("sha256")
+  .update(JSON.stringify(MATERIAL_GRADES))
+  .digest("hex")}`;
+
 export const MATERIALS_SOURCE = {
   name: "KittyCAD/material-properties",
   license: "Apache-2.0",
   basis: "typical" as const,
+  revision: MATERIALS_DATASET_REVISION,
+  revision_note:
+    "Digest of the embedded converted dataset; it identifies this snapshot, not an upstream release or material certification.",
   caveat:
     "Typical handbook values, not design allowables. Do not use for a strength margin " +
     "without an allowable from a qualified source.",

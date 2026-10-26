@@ -69,6 +69,17 @@ describe("feasibility checks", () => {
     expect(result.note).toMatch(/design change or a different process/);
   });
 
+  it("returns injection-molding draft limits in degrees", async () => {
+    const result = await checkHandler({
+      process: "injection-molding",
+      feature: "draft_angle",
+      measured: 0.75,
+    });
+    expect(result.unit).toBe("deg");
+    expect(result.limit).toBe(1);
+    expect(result.verdict).toBe("warning");
+  });
+
   it("scales a ratio limit by the material thickness", () => {
     // Sheet metal hole-to-edge is 0.5x thickness at the hard limit, 1x recommended.
     // At 2 mm thickness the hard limit is 0.5x = 1 mm and the recommendation is
