@@ -18,7 +18,7 @@ import {
  * answer and a plausible-looking one.
  */
 describe("tool registry", () => {
-  it("exposes six uniquely named tools", () => {
+  it("exposes eight uniquely named tools", () => {
     expect(PUBLIC_TOOL_NAMES).toEqual([
       "list_standards",
       "limits_of_size",
@@ -26,6 +26,8 @@ describe("tool registry", () => {
       "it_grade",
       "general_tolerance",
       "general_tolerance_complies",
+      "material_properties",
+      "material_coverage",
     ]);
     expect(new Set(PUBLIC_TOOL_NAMES).size).toBe(PUBLIC_TOOL_NAMES.length);
   });

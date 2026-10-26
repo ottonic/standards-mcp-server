@@ -1,6 +1,7 @@
 import { z } from "zod";
 import * as iso286 from "./iso286-tools.js";
 import * as iso2768 from "./iso2768-tools.js";
+import * as materials from "./material-tools.js";
 
 /**
  * What this server implements, and what it deliberately does not.
@@ -78,6 +79,21 @@ export const TOOL_REGISTRY: ToolSpec[] = [
             "class m and v for broken edges, and class m for angular dimensions, which the standard does not tabulate",
           ],
         },
+        {
+          id: "materials (typical values)",
+          title: "Indicative material properties, from an Apache-2.0 reference",
+          covers: [
+            `${materials.materialCoverage().grades} grades across ${materials.materialCoverage().families.length} families`,
+            "density, yield and ultimate strength, Young's modulus, Poisson's ratio, elongation, thermal expansion, maximum service temperature",
+            "all converted to SI, and every value tagged basis: typical",
+          ],
+          does_not_cover: [
+            "design allowables: no A-basis or B-basis values, which is what a strength margin needs",
+            "fatigue, creep, high-temperature or corrosion data",
+            "material specifications or standards conformance",
+            "any property not published in the source reference",
+          ],
+        },
       ],
       note: "Values come from the published tables, which are normative; the tolerance factor is used only as a cross-check because it diverges from the table at the smallest size step.",
     }),
@@ -147,6 +163,34 @@ export const TOOL_REGISTRY: ToolSpec[] = [
     inputSchema: iso2768.complianceSchema,
     outputSchema: record,
     handler: iso2768.complianceHandler,
+  }),
+  defineTool({
+    name: "material_properties",
+    title: "Material Properties (Typical Values)",
+    description:
+      "Look up indicative material properties for a common metal or plastic by designation, such as 6061-T6, 304 or Ti-6Al-4V. " +
+      "Returns density, yield and ultimate strength, Young's modulus, Poisson's ratio, elongation, thermal expansion and maximum service temperature, all in SI. " +
+      "These are TYPICAL handbook values, not design allowables: every value is tagged basis: typical. " +
+      "Use them to compare materials, estimate mass, or supply an indicative modulus to an analysis; obtain an allowable from a qualified source before relying on a strength margin. " +
+      "An unmatched designation means this reference does not hold it, not that the material does not exist.",
+    purpose:
+      "Indicative SI properties for a common material, tagged as typical.",
+    examples: materials.lookupExamples,
+    inputSchema: materials.lookupSchema,
+    outputSchema: record,
+    handler: materials.lookupHandler,
+  }),
+  defineTool({
+    name: "material_coverage",
+    title: "What Material Data Is Held",
+    description:
+      "List what the material reference holds and what it does not. Call this when a material was not found, or before promising a property, so a gap is visible rather than assumed. " +
+      "The reference is limited to typical values for common metals and plastics: it holds no design allowables, no fatigue data and no high-temperature data.",
+    purpose: "The material reference's coverage and its known gaps.",
+    examples: [{}],
+    inputSchema: materials.propertiesSchema,
+    outputSchema: record,
+    handler: materials.propertiesHandler,
   }),
 ];
 
