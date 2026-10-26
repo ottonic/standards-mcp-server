@@ -2,6 +2,7 @@ import { z } from "zod";
 import * as iso286 from "./iso286-tools.js";
 import * as iso2768 from "./iso2768-tools.js";
 import * as materials from "./material-tools.js";
+import * as process from "./process-tools.js";
 
 /**
  * What this server implements, and what it deliberately does not.
@@ -92,6 +93,21 @@ export const TOOL_REGISTRY: ToolSpec[] = [
             "fatigue, creep, high-temperature or corrosion data",
             "material specifications or standards conformance",
             "any property not published in the source reference",
+          ],
+        },
+        {
+          id: "process limits (rules of thumb)",
+          title:
+            "Geometric feasibility limits for common manufacturing processes",
+          covers: [
+            "cnc-machining, sheet-metal, injection-molding and additive-sls",
+            "minimum wall, hole-to-edge and hole-to-bend distances, internal corner radius, bend radius, draft angle, pocket depth-to-width",
+            "limits expressed either as an absolute size or as a ratio of material thickness",
+          ],
+          does_not_cover: [
+            "a specific shop's capability: no public dataset of that exists, so it has to come from the supplier",
+            "achievable tolerance and surface finish per process",
+            "cost, lead time, tooling, or production volume effects",
           ],
         },
       ],
@@ -191,6 +207,47 @@ export const TOOL_REGISTRY: ToolSpec[] = [
     inputSchema: materials.propertiesSchema,
     outputSchema: record,
     handler: materials.propertiesHandler,
+  }),
+  defineTool({
+    name: "process_limits",
+    title: "Manufacturing Process Limits",
+    description:
+      "Describe what a manufacturing process can hold: minimum wall thickness, minimum hole-to-edge " +
+      "and hole-to-bend distances, minimum internal corner radius, bend radius, draft angle, pocket depth-to-width ratio. " +
+      "Call process_feasibility to test one measured feature against these. " +
+      "These are published rules of thumb for geometric feasibility, not a specific shop's capability, and they say nothing about cost or lead time.",
+    purpose: "Published feasibility limits for one manufacturing process.",
+    examples: process.limitsExamples,
+    inputSchema: process.limitsSchema,
+    outputSchema: record,
+    handler: process.limitsHandler,
+  }),
+  defineTool({
+    name: "process_feasibility",
+    title: "Check a Feature Against Process Limits",
+    description:
+      "Compare one measured feature against a manufacturing process's limits and report whether it is within, marginal, or beyond them. " +
+      "Some limits are expressed as a ratio of material thickness rather than an absolute size — a 1 mm hole is fine in thin sheet and difficult in thick plate — so supply the thickness when the limit needs it. " +
+      "A result inside the limits is not a promise that a shop can make the part, or an estimate of what it costs. " +
+      "Pair this with a measured wall or hole size from a CAD server to answer whether a part suits a process.",
+    purpose:
+      "Whether a measured feature is within a process's published limits.",
+    examples: process.checkExamples,
+    inputSchema: process.checkSchema,
+    outputSchema: record,
+    handler: process.checkHandler,
+  }),
+  defineTool({
+    name: "process_list",
+    title: "List Manufacturing Processes",
+    description:
+      "List the manufacturing processes this server has limits for, and which features each one covers. " +
+      "Call this first when a question names a process, so an unsupported process is visible before a check fails.",
+    purpose: "Which processes and features are covered.",
+    examples: [{}],
+    inputSchema: process.listSchema,
+    outputSchema: record,
+    handler: process.listHandler,
   }),
 ];
 
