@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { TOOL_REGISTRY, PUBLIC_TOOL_NAMES } from "../src/tools/registry.js";
 import {
+  applicabilityHandler,
   fitHandler,
+  gradeSchema,
   gradeHandler,
   limitsHandler,
   tableHandler,
@@ -18,10 +20,11 @@ import {
  * answer and a plausible-looking one.
  */
 describe("tool registry", () => {
-  it("exposes eleven uniquely named tools", () => {
+  it("exposes twelve uniquely named tools", () => {
     expect(PUBLIC_TOOL_NAMES).toEqual([
       "list_standards",
       "limits_of_size",
+      "iso286_applicability",
       "fit",
       "it_grade",
       "general_tolerance",
@@ -68,10 +71,53 @@ describe("tool handlers", () => {
     expect(result.standard).toBe("iso286-1:2010+cor1:2013");
   });
 
+  it("reports exact ISO 286 support intervals and sparse gaps", async () => {
+    const h7 = await applicabilityHandler({ designation: "H7" });
+    expect(h7.supported).toBe(true);
+    expect(h7.applicable_size_intervals_mm).toEqual([{ over: 0, up_to: 500 }]);
+
+    const n9 = await applicabilityHandler({ designation: "N9" });
+    expect(n9.applicable_size_intervals_mm).toEqual([{ over: 1, up_to: 500 }]);
+
+    const k9 = await applicabilityHandler({ designation: "K9" });
+    expect(k9.applicable_size_intervals_mm).toEqual([{ over: 0, up_to: 3 }]);
+
+    const t6 = await applicabilityHandler({ designation: "t6" });
+    expect(t6.applicable_size_intervals_mm).toEqual([{ over: 24, up_to: 500 }]);
+
+    const j8 = await applicabilityHandler({ designation: "j8" });
+    expect(j8.supported).toBe(true);
+    expect(j8.applicable_size_intervals_mm).toEqual([{ over: 0, up_to: 3 }]);
+    await expect(applicabilityHandler({ designation: "H19" })).rejects.toThrow(
+      /not a standard tolerance grade/,
+    );
+  });
+
   it("exposes corrected K/M/N, P–ZC, and J hole classes", async () => {
     const k = await limitsHandler({ nominal: 20, designation: "K7" });
     expect(k.upper_deviation).toBe(0.006);
     expect(k.lower_deviation).toBe(-0.015);
+
+    const k8 = await limitsHandler({ nominal: 20, designation: "K8" });
+    expect(k8.upper_deviation).toBe(0.01);
+    expect(k8.lower_deviation).toBe(-0.023);
+
+    const n9 = await limitsHandler({ nominal: 20, designation: "N9" });
+    expect(n9.upper_deviation).toBe(0);
+    expect(n9.lower_deviation).toBe(-0.052);
+
+    // Table 3 is zero through 3 mm, and N mirrors its fundamental there.
+    const smallK = await limitsHandler({ nominal: 3, designation: "K6" });
+    expect(smallK.upper_deviation).toBe(0);
+    expect(smallK.lower_deviation).toBe(-0.006);
+    const smallN = await limitsHandler({ nominal: 3, designation: "N9" });
+    expect(smallN.upper_deviation).toBe(-0.004);
+    expect(smallN.lower_deviation).toBe(-0.029);
+
+    // Table 4's j value is ei, so the upper deviation is ei + IT.
+    const j6 = await limitsHandler({ nominal: 20, designation: "j6" });
+    expect(j6.upper_deviation).toBe(0.009);
+    expect(j6.lower_deviation).toBe(-0.004);
 
     const p = await limitsHandler({ nominal: 28, designation: "P9" });
     expect(p.upper_deviation).toBe(-0.022);
@@ -110,11 +156,19 @@ describe("tool handlers", () => {
   });
 
   it("reports a grade in both units with the size step it came from", async () => {
-    const result = await gradeHandler({ nominal: 20, grade: 7 });
+    const result = await gradeHandler({ nominal: 20, grade: "IT7" });
     expect(result.grade).toBe("IT7");
     expect(result.tolerance_micrometres).toBe(21);
     expect(result.tolerance_mm).toBe(0.021);
     expect(result.size_step_mm).toEqual({ over: 18, up_to: 30 });
+
+    const it01 = await gradeHandler({ nominal: 20, grade: "IT01" });
+    expect(it01.tolerance_micrometres).toBe(0.6);
+    const it0 = await gradeHandler({ nominal: 20, grade: "IT0" });
+    expect(it0.tolerance_micrometres).toBe(1);
+    expect(gradeSchema.safeParse({ nominal: 20, grade: 7 }).success).toBe(
+      false,
+    );
   });
 
   it("lists the whole published grade table", async () => {

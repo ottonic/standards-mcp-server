@@ -7,6 +7,29 @@ import {
   toleranceFactor,
   sizeStep,
 } from "../src/domain/iso286.js";
+import {
+  deltaReferenceRanges,
+  deltaReferenceValuesUm,
+} from "./fixtures/iso286-delta-reference.js";
+import {
+  itReferenceRanges,
+  itReferenceValuesUm,
+} from "./fixtures/iso286-it-reference.js";
+import {
+  holeJUpperDeviationUm,
+  jHoleShaftRanges,
+  shaftJLowerDeviationUm,
+} from "./fixtures/iso286-j-reference.js";
+import {
+  table4CoarseRanges,
+  table4CUpperDeviationUm,
+  table4FineRanges,
+  table4UpperDeviationUm,
+} from "./fixtures/iso286-table4-reference.js";
+import {
+  table5LowerDeviationUm,
+  table5Ranges,
+} from "./fixtures/iso286-table5-reference.js";
 
 /**
  * Every expectation here is a value the standard itself publishes. The worked
@@ -14,6 +37,21 @@ import {
  * delta-correction errors that made `n6`, `s6` and `H7/n6` silently wrong.
  */
 describe("ISO 286 tolerance grades", () => {
+  it("matches all 260 Table 1 cells and size-step boundaries", () => {
+    const grades = [0.1, 0, ...Array.from({ length: 18 }, (_, i) => i + 1)];
+    expect(itReferenceValuesUm).toHaveLength(itReferenceRanges.length);
+    for (const [rowIndex, [over, upTo]] of itReferenceRanges.entries()) {
+      const expected = itReferenceValuesUm[rowIndex]!;
+      expect(expected).toHaveLength(grades.length);
+      for (const [column, grade] of grades.entries()) {
+        expect(itGrade(upTo, grade)).toBe(expected[column]);
+        if (over > 0) {
+          expect(itGrade(over + 0.000001, grade)).toBe(expected[column]);
+        }
+      }
+    }
+  });
+
   it("reproduces the published IT table for every size step", () => {
     const steps = itTable();
     expect(steps).toHaveLength(13);
@@ -46,6 +84,225 @@ describe("ISO 286 tolerance grades", () => {
 });
 
 describe("ISO 286 limits of size", () => {
+  it("applies every independently transcribed Table 3 Δ value", () => {
+    const grades = [3, 4, 5, 6, 7, 8];
+    for (const [rowIndex, [, upTo]] of deltaReferenceRanges.entries()) {
+      const deltas = deltaReferenceValuesUm[rowIndex]!;
+      expect(deltas).toHaveLength(grades.length);
+      const table5Index = table5Ranges.findIndex(
+        ([over, end]) => upTo > over && upTo <= end,
+      );
+      const kEi = table5LowerDeviationUm.k[table5Index]!;
+      const mEi = table5LowerDeviationUm.m[table5Index]!;
+      const nEi = table5LowerDeviationUm.n[table5Index]!;
+      const pEi = table5LowerDeviationUm.p[table5Index]!;
+      expect(limitsOfSize(upTo, "M9").upperDeviation * 1000).toBeCloseTo(
+        -mEi,
+        9,
+      );
+      const n9UpperUm = upTo <= 3 ? -nEi : 0;
+      expect(limitsOfSize(upTo, "N9").upperDeviation * 1000).toBeCloseTo(
+        n9UpperUm,
+        9,
+      );
+
+      for (const [index, grade] of grades.entries()) {
+        const delta = deltas[index]!;
+        const expectedK = -kEi + delta;
+        expect(
+          limitsOfSize(upTo, `K${grade}`).upperDeviation * 1000,
+        ).toBeCloseTo(expectedK, 9);
+
+        const expectedM =
+          grade === 6 && upTo > 250 && upTo <= 315 ? -9 : -mEi + delta;
+        expect(
+          limitsOfSize(upTo, `M${grade}`).upperDeviation * 1000,
+        ).toBeCloseTo(expectedM, 9);
+
+        expect(
+          limitsOfSize(upTo, `N${grade}`).upperDeviation * 1000,
+        ).toBeCloseTo(-nEi + delta, 9);
+
+        if (grade <= 7) {
+          expect(
+            limitsOfSize(upTo, `P${grade}`).upperDeviation * 1000,
+          ).toBeCloseTo(-pEi + delta, 9);
+        }
+      }
+    }
+  });
+
+  it("qualifies Table 3 hole classes over every Table 5 interval and grade", () => {
+    const holeLetters = [
+      "N",
+      "P",
+      "R",
+      "S",
+      "T",
+      "U",
+      "V",
+      "X",
+      "Y",
+      "Z",
+      "ZA",
+      "ZB",
+      "ZC",
+    ];
+    const deltaGrades = [3, 4, 5, 6, 7, 8];
+
+    for (const [rowIndex, [, upTo]] of table5Ranges.entries()) {
+      const deltaIndex = deltaReferenceRanges.findIndex(
+        ([over, end]) => upTo > over && upTo <= end,
+      );
+      const deltas = deltaReferenceValuesUm[deltaIndex]!;
+      for (const letter of holeLetters) {
+        const ei =
+          table5LowerDeviationUm[
+            letter.toLowerCase() as keyof typeof table5LowerDeviationUm
+          ]?.[rowIndex];
+        for (let grade = 3; grade <= 18; grade += 1) {
+          const shouldBeSupported =
+            letter === "N" || (ei !== null && ei !== undefined);
+          const designation = `${letter}${grade}`;
+          if (
+            !shouldBeSupported ||
+            (letter === "N" && grade > 8 && upTo <= 1)
+          ) {
+            expect(() => limitsOfSize(upTo, designation)).toThrowError();
+            continue;
+          }
+
+          let expectedEsUm: number;
+          if (grade >= 9 && letter === "N") {
+            const nEi = table5LowerDeviationUm.n[rowIndex]!;
+            expectedEsUm = upTo <= 3 ? -nEi : 0;
+          } else if (grade >= 8 && letter !== "N") {
+            expectedEsUm = -(ei ?? 0);
+          } else {
+            const delta = deltas[deltaGrades.indexOf(grade)]!;
+            if (letter === "N") {
+              const nEi = table5LowerDeviationUm.n[rowIndex]!;
+              expectedEsUm = -nEi + delta;
+            } else {
+              expectedEsUm = -(ei ?? 0) + delta;
+            }
+          }
+          expect(
+            limitsOfSize(upTo, designation).upperDeviation * 1000,
+          ).toBeCloseTo(expectedEsUm, 9);
+        }
+      }
+    }
+  });
+
+  it("matches every coarse Table 4 d–g cell", () => {
+    for (const [letter, deviations] of Object.entries(table4UpperDeviationUm)) {
+      expect(deviations).toHaveLength(table4CoarseRanges.length);
+      for (const [index, [, upTo]] of table4CoarseRanges.entries()) {
+        expect(
+          limitsOfSize(upTo, `${letter}6`).upperDeviation * 1000,
+        ).toBeCloseTo(deviations[index]!, 9);
+      }
+    }
+  });
+
+  it("qualifies Table 2 holes C–G against the mirrored Table 4 cells", () => {
+    const cases: Array<{
+      letter: string;
+      ranges: readonly (readonly [number, number])[];
+      es: readonly number[];
+    }> = [
+      { letter: "C", ranges: table4FineRanges, es: table4CUpperDeviationUm },
+      ...(["d", "e", "f", "g"] as const).map((letter) => ({
+        letter: letter.toUpperCase(),
+        ranges: table4CoarseRanges,
+        es: table4UpperDeviationUm[letter],
+      })),
+    ];
+
+    for (const { letter, ranges, es } of cases) {
+      for (const [index, [, upTo]] of ranges.entries()) {
+        const shaftEsUm = es[index]!;
+        for (let grade = 1; grade <= 18; grade += 1) {
+          const expectedHoleEsUm = itGrade(upTo, grade) - shaftEsUm;
+          const limits = limitsOfSize(upTo, `${letter}${grade}`);
+          expect(limits.upperDeviation * 1000).toBeCloseTo(expectedHoleEsUm, 9);
+          expect(limits.lowerDeviation * 1000).toBeCloseTo(
+            expectedHoleEsUm - itGrade(upTo, grade),
+            9,
+          );
+        }
+      }
+    }
+  });
+
+  it("qualifies H and JS holes from their ISO-defined zero and symmetric zones", () => {
+    for (const [, upTo] of table4CoarseRanges) {
+      for (let grade = 1; grade <= 18; grade += 1) {
+        const tolerance = itGrade(upTo, grade) / 1000;
+        const h = limitsOfSize(upTo, `H${grade}`);
+        expect(h.upperDeviation).toBeCloseTo(tolerance, 9);
+        expect(h.lowerDeviation).toBe(0);
+
+        const js = limitsOfSize(upTo, `JS${grade}`);
+        expect(js.upperDeviation).toBeCloseTo(tolerance / 2, 9);
+        expect(js.lowerDeviation).toBeCloseTo(-tolerance / 2, 9);
+      }
+    }
+  });
+
+  it("matches every grade-specific shaft j and hole J value", () => {
+    for (const [gradeKey, values] of Object.entries(shaftJLowerDeviationUm)) {
+      const grade = Number(gradeKey);
+      expect(values).toHaveLength(jHoleShaftRanges.length);
+      for (const [index, [, upTo]] of jHoleShaftRanges.entries()) {
+        const lowerUm = values[index];
+        if (lowerUm === null || lowerUm === undefined) {
+          expect(() => limitsOfSize(upTo, `j${grade}`)).toThrowError(/IT5–IT7/);
+          continue;
+        }
+        const limits = limitsOfSize(upTo, `j${grade}`);
+        expect(limits.lowerDeviation * 1000).toBeCloseTo(lowerUm, 9);
+        expect(limits.upperDeviation * 1000).toBeCloseTo(
+          lowerUm + itGrade(upTo, grade),
+          9,
+        );
+      }
+    }
+    for (const [grade, values] of Object.entries(holeJUpperDeviationUm)) {
+      expect(values).toHaveLength(jHoleShaftRanges.length);
+      for (const [index, [, upTo]] of jHoleShaftRanges.entries()) {
+        expect(
+          limitsOfSize(upTo, `J${grade}`).upperDeviation * 1000,
+        ).toBeCloseTo(values[index]!, 9);
+      }
+    }
+  });
+
+  it("matches every Table 5 shaft cell, including genuine blanks", () => {
+    for (const [letter, deviations] of Object.entries(table5LowerDeviationUm)) {
+      expect(deviations).toHaveLength(table5Ranges.length);
+      for (const [index, [over, upTo]] of table5Ranges.entries()) {
+        const deviation = deviations[index]!;
+        const designation = `${letter}6`;
+        if (deviation === null) {
+          expect(() => limitsOfSize(upTo, designation)).toThrowError(
+            /blank Table 5 cells remain unsupported/,
+          );
+          continue;
+        }
+        expect(
+          limitsOfSize(upTo, designation).lowerDeviation * 1000,
+        ).toBeCloseTo(deviation, 9);
+        if (letter === "k") {
+          expect(limitsOfSize(upTo, "k3").lowerDeviation).toBe(0);
+          expect(limitsOfSize(upTo, "k8").lowerDeviation).toBe(0);
+        }
+        expect(upTo).toBeGreaterThan(over);
+      }
+    }
+  });
+
   const examples: Array<[number, string, number, number]> = [
     [36, "H7", 0.025, 0],
     [36, "n6", 0.033, 0.017],
@@ -99,12 +356,20 @@ describe("ISO 286 limits of size", () => {
   });
 
   it("uses the grade-specific j/J tables rather than a guessed mirror", () => {
-    expect(limitsOfSize(20, "j5").upperDeviation).toBeCloseTo(-0.004, 9);
-    expect(limitsOfSize(20, "j6").upperDeviation).toBeCloseTo(-0.004, 9);
-    expect(limitsOfSize(20, "j7").upperDeviation).toBeCloseTo(-0.008, 9);
+    // Table 4 tabulates the lower deviation ei, so es = ei + IT.
+    expect(limitsOfSize(20, "j5").upperDeviation).toBeCloseTo(0.005, 9);
+    expect(limitsOfSize(20, "j5").lowerDeviation).toBeCloseTo(-0.004, 9);
+    expect(limitsOfSize(20, "j6").upperDeviation).toBeCloseTo(0.009, 9);
+    expect(limitsOfSize(20, "j6").lowerDeviation).toBeCloseTo(-0.004, 9);
+    expect(limitsOfSize(20, "j7").upperDeviation).toBeCloseTo(0.013, 9);
+    expect(limitsOfSize(20, "j7").lowerDeviation).toBeCloseTo(-0.008, 9);
     expect(limitsOfSize(20, "J6").upperDeviation).toBeCloseTo(0.008, 9);
     expect(limitsOfSize(20, "J7").upperDeviation).toBeCloseTo(0.012, 9);
     expect(limitsOfSize(20, "J8").upperDeviation).toBeCloseTo(0.02, 9);
+    expect(limitsOfSize(3, "j8").upperDeviation).toBeCloseTo(0.008, 9);
+    expect(limitsOfSize(3, "j8").lowerDeviation).toBeCloseTo(-0.006, 9);
+    expect(() => limitsOfSize(20, "j8")).toThrowError(/IT5–IT7/);
+    expect(() => limitsOfSize(3.001, "j8")).toThrowError(/IT5–IT7/);
   });
 
   it("applies Table 3 delta corrections and the M6 exception for holes", () => {
@@ -112,9 +377,22 @@ describe("ISO 286 limits of size", () => {
     expect(k.upperDeviation).toBeCloseTo(0.006, 9);
     expect(k.lowerDeviation).toBeCloseTo(-0.015, 9);
 
+    const k8 = limitsOfSize(20, "K8");
+    expect(k8.upperDeviation).toBeCloseTo(0.01, 9);
+    expect(k8.lowerDeviation).toBeCloseTo(-0.023, 9);
+    expect(limitsOfSize(3, "K9").upperDeviation).toBe(0);
+    expect(() => limitsOfSize(3.001, "K9")).toThrowError(
+      /no published hole deviation/,
+    );
+    expect(() => limitsOfSize(20, "K9")).toThrowError(
+      /no published hole deviation/,
+    );
+
     const m = limitsOfSize(60, "M6");
     expect(m.upperDeviation).toBeCloseTo(-0.005, 9);
     expect(m.lowerDeviation).toBeCloseTo(-0.024, 9);
+    expect(limitsOfSize(20, "M8").upperDeviation).toBeCloseTo(0.004, 9);
+    expect(limitsOfSize(20, "M9").upperDeviation).toBeCloseTo(-0.008, 9);
 
     const mException = limitsOfSize(260, "M6");
     expect(mException.upperDeviation).toBeCloseTo(-0.009, 9);
@@ -126,6 +404,15 @@ describe("ISO 286 limits of size", () => {
     const n = limitsOfSize(20, "N6");
     expect(n.upperDeviation).toBeCloseTo(-0.011, 9);
     expect(n.lowerDeviation).toBeCloseTo(-0.024, 9);
+    const n9 = limitsOfSize(20, "N9");
+    expect(n9.upperDeviation).toBe(0);
+    expect(n9.lowerDeviation).toBeCloseTo(-0.052, 9);
+    expect(limitsOfSize(3, "N9").upperDeviation).toBeCloseTo(-0.004, 9);
+    expect(limitsOfSize(3.001, "N9").upperDeviation).toBe(0);
+    expect(limitsOfSize(20, "N8").upperDeviation).toBeCloseTo(-0.003, 9);
+    expect(() => limitsOfSize(1, "N9")).toThrowError(
+      /excludes hole N above IT8/,
+    );
   });
 
   it("applies Table 3 delta values to P–ZC holes at the specified grades", () => {

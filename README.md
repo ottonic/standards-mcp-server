@@ -11,8 +11,9 @@ question needs in order to mean anything.
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | `list_standards`  | Which standards are implemented, and what within each is **not** covered.                                                        |
 | `limits_of_size`  | Upper and lower deviations and limits for one tolerance class at one nominal size, e.g. `36H7`.                                   |
+| `iso286_applicability` | Exact size intervals where one ISO 286 tolerance class is supported, e.g. `H7`, `j5` or `N9`. |
 | `fit`             | Fit type, clearance and interference for a hole and shaft pair at one nominal size, e.g. `12 H7/h6`.                              |
-| `it_grade`        | The standard tolerance value for one IT grade at one size, in micrometres and millimetres.                                        |
+| `it_grade`        | The standard tolerance value for one IT grade at one size, in micrometres and millimetres. Pass the grade as `IT01`, `IT0`, or `IT1`–`IT18`. |
 
 ## Coverage, and the way it is reported
 
@@ -22,19 +23,22 @@ verified against the published standard are refused with a stated reason, and
 failure.
 
 **ISO 286-1:2010, with Cor 1:2013 applied** provides standard tolerance grades
-IT1 to IT18 for nominal sizes up to 500 mm. Shaft limits cover `c`–`h`, `k`,
+IT01, IT0 and IT1 to IT18 for nominal sizes up to 500 mm. Shaft limits cover `c`–`h`, `k`,
 `m`, `n`, `p`, `r`–`v`, `x`–`z`, and `za`–`zc` where Table 4/5 publishes a
 cell, using its exact size intervals and grade rules. Verified combinations of
 hole classes `C, D, E, F, G, H, JS, K, M, N, P, R, S, T, U, V, X, Y, Z, ZA,
 ZB, ZC` use Table 2/3 ∆ corrections and the M6 exception. Blank or unrepresented
-cells remain unsupported. Grade-specific shaft `j5`–`j7` and hole `J6`–`J8` use
-their own table values, not a mirrored formula.
+cells remain unsupported. Grade-specific shaft `j5`–`j7` (and `j8` up to 3 mm)
+and hole `J6`–`J8` use their own table values, not a mirrored formula.
+
+Use `iso286_applicability` to check the exact supported size intervals for a
+class before applying it to a range. Unsupported gaps are not interpolated.
 
 Not covered, and refused rather than guessed:
 
 - IT01, IT0, IT1 and IT2 K/M/N/P–ZC classes where Table 3 provides no ∆ value;
   unrepresented sparse Table 2/3 cells also remain refused.
-- shaft `j` outside IT5–IT7 and hole `J` outside IT6–IT8.
+- shaft `j` outside IT5–IT7 (and `j8` above 3 mm) and hole `J` outside IT6–IT8.
 - nominal sizes above 500 mm.
 - the inch counterparts (ANSI B4.2).
 

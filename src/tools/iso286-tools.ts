@@ -2,6 +2,7 @@ import { z } from "zod";
 import { domainError } from "../errors.js";
 import {
   ISO_286_EDITION,
+  applicableSizeIntervals,
   fit,
   itGrade,
   itTable,
@@ -52,6 +53,36 @@ export async function limitsHandler(args: z.output<typeof limitsSchema>) {
   };
 }
 
+export const applicabilitySchema = z
+  .object({
+    designation: designation.describe(
+      "Tolerance class in standard notation, e.g. H7, j5 or N9.",
+    ),
+  })
+  .strict();
+
+export const applicabilityExamples = [
+  { designation: "H7" },
+  { designation: "j5" },
+];
+
+export async function applicabilityHandler(
+  args: z.output<typeof applicabilitySchema>,
+) {
+  const intervals = applicableSizeIntervals(args.designation);
+  return {
+    designation: args.designation,
+    supported: intervals.length > 0,
+    applicable_size_intervals_mm: intervals.map(({ over, upTo }) => ({
+      over,
+      up_to: upTo,
+    })),
+    interval_convention: "(over, up_to]",
+    standard: ISO_286_EDITION,
+    note: "Only listed intervals are supported; gaps are deliberately not inferred.",
+  };
+}
+
 export const fitSchema = z
   .object({
     nominal: nominal.describe(
@@ -96,24 +127,37 @@ export async function fitHandler(args: z.output<typeof fitSchema>) {
   };
 }
 
+const gradeLabels = [
+  "IT01",
+  "IT0",
+  ...Array.from({ length: 18 }, (_, index) => `IT${index + 1}`),
+] as const;
+
 export const gradeSchema = z
   .object({
     nominal: nominal.describe("Nominal size in millimetres."),
-    grade: z.number().int().min(1).max(18).meta({
-      description: "Standard tolerance grade, IT1 to IT18. Example: 7.",
+    grade: z.enum(gradeLabels).meta({
+      description:
+        "Standard tolerance grade in ISO notation: IT01, IT0, or IT1 to IT18.",
     }),
   })
   .strict();
 
-export const gradeExamples = [{ nominal: 36, grade: 7 }];
+export const gradeExamples = [{ nominal: 36, grade: "IT7" }];
 
 export async function gradeHandler(args: z.output<typeof gradeSchema>) {
   const step = sizeStep(args.nominal);
+  const grade =
+    args.grade === "IT01"
+      ? 0.1
+      : args.grade === "IT0"
+        ? 0
+        : Number(args.grade.slice(2));
   return {
     nominal: args.nominal,
-    grade: `IT${args.grade}`,
-    tolerance_micrometres: itGrade(args.nominal, args.grade),
-    tolerance_mm: Number((itGrade(args.nominal, args.grade) / 1000).toFixed(4)),
+    grade: args.grade,
+    tolerance_micrometres: itGrade(args.nominal, grade),
+    tolerance_mm: Number((itGrade(args.nominal, grade) / 1000).toFixed(4)),
     size_step_mm: { over: step.over, up_to: step.upTo },
     standard: ISO_286_EDITION,
   };

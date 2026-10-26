@@ -44,7 +44,7 @@ export const TOOL_REGISTRY: ToolSpec[] = [
     title: "List Standards Coverage",
     description:
       "List the standards this server implements, and what within each one is not covered. Call this first when a question mentions a standard, so you know whether the value you need is available before you promise an answer. " +
-      "Coverage is partial by design: unimplemented values are refused with a stated reason rather than approximated.",
+      "Coverage is partial by design: unimplemented values are refused with a stated reason rather than approximated. Use iso286_applicability for exact size intervals of an ISO 286 class.",
     purpose: "Which standards are implemented, and their known gaps.",
     examples: [{}],
     inputSchema: iso286.tableSchema,
@@ -55,13 +55,13 @@ export const TOOL_REGISTRY: ToolSpec[] = [
           id: "iso286-1:2010+cor1:2013",
           title: "ISO code system for tolerances on linear sizes",
           covers: [
-            "standard tolerance grades IT1 to IT18, sizes up to 500 mm",
+            "standard tolerance grades IT01, IT0 and IT1 to IT18, sizes up to 500 mm",
             "verified shaft classes c, d, e, f, g, h, k, m, n, p, r, s, t, u, v, x, y, z, za, zb and zc where Table 4/5 publishes a cell, using exact size intervals and grade applicability",
-            "shaft j5, j6 and j7 and hole J6, J7 and J8 using their grade-specific Table 2/4 values",
+            "shaft j5, j6 and j7, plus j8 up to 3 mm, and hole J6, J7 and J8 using their grade-specific Table 2/4 values",
             "verified combinations of hole classes C, D, E, F, G, H, JS, K, M, N, P, R, S, T, U, V, X, Y, Z, ZA, ZB and ZC, using Table 2/3 ∆ corrections and the M6 exception; unrepresented cells remain refused",
           ],
           does_not_cover: [
-            "shaft j outside IT5–IT7 and hole J outside IT6–IT8",
+            "shaft j outside IT5–IT7 (and j8 above 3 mm) and hole J outside IT6–IT8",
             "IT01, IT0, IT1 and IT2 K/M/N/P–ZC combinations where ISO Table 3 supplies no ∆ value; unrepresented sparse cells remain unsupported",
             "nominal sizes above 500 mm",
             "the inch counterparts (ANSI B4.2)",
@@ -127,6 +127,17 @@ export const TOOL_REGISTRY: ToolSpec[] = [
     inputSchema: iso286.limitsSchema,
     outputSchema: record,
     handler: iso286.limitsHandler,
+  }),
+  defineTool({
+    name: "iso286_applicability",
+    title: "Check ISO 286 Class Applicability",
+    description:
+      "List the exact nominal-size intervals where one ISO 286 tolerance class is supported, such as H7, j5 or N9. Use this before relying on a class across a size range; omitted intervals are not inferred.",
+    purpose: "Exact supported size intervals for one ISO 286 tolerance class.",
+    examples: iso286.applicabilityExamples,
+    inputSchema: iso286.applicabilitySchema,
+    outputSchema: record,
+    handler: iso286.applicabilityHandler,
   }),
   defineTool({
     name: "fit",

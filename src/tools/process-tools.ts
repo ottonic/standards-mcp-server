@@ -76,7 +76,7 @@ export const checkExamples = [
 
 export async function checkHandler(args: z.output<typeof checkSchema>) {
   const result = checkLimit(args.process, args.feature, args.measured, {
-    ...(args.thickness === undefined ? {} : { thickness: args.thickness }),
+    thickness: args.thickness,
   });
   return {
     process: result.process,
