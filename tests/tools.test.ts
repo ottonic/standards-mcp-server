@@ -1,0 +1,85 @@
+import { describe, expect, it } from "vitest";
+import { TOOL_REGISTRY, PUBLIC_TOOL_NAMES } from "../src/tools/registry.js";
+import {
+  fitHandler,
+  gradeHandler,
+  limitsHandler,
+  tableHandler,
+} from "../src/tools/iso286-tools.js";
+
+/**
+ * The tool layer is a contract with a caller that cannot read the source: a
+ * wrong field name or a missing refusal is the difference between a usable
+ * answer and a plausible-looking one.
+ */
+describe("tool registry", () => {
+  it("exposes four uniquely named tools", () => {
+    expect(PUBLIC_TOOL_NAMES).toEqual([
+      "list_standards",
+      "limits_of_size",
+      "fit",
+      "it_grade",
+    ]);
+    expect(new Set(PUBLIC_TOOL_NAMES).size).toBe(PUBLIC_TOOL_NAMES.length);
+  });
+
+  it("gives every tool a declared output schema and at least one example", () => {
+    for (const tool of TOOL_REGISTRY) {
+      expect(tool.outputSchema).toBeDefined();
+      expect(tool.examples.length).toBeGreaterThan(0);
+      expect(tool.description.length).toBeGreaterThan(50);
+    }
+  });
+
+  it("states the limits and the non-verdict boundary in the descriptions", () => {
+    // The eval grades whether the caller distinguishes facts from judgements, so
+    // the tool text has to make that distinction itself.
+    const fit = TOOL_REGISTRY.find((tool) => tool.name === "fit")!;
+    expect(fit.description).toMatch(/not whether it is the right choice/i);
+    const limits = TOOL_REGISTRY.find(
+      (tool) => tool.name === "limits_of_size",
+    )!;
+    expect(limits.description).toMatch(/engineering decision/i);
+    const list = TOOL_REGISTRY.find((tool) => tool.name === "list_standards")!;
+    expect(list.description).toMatch(/refused/i);
+  });
+});
+
+describe("tool handlers", () => {
+  it("reports deviations and limits for a hole", async () => {
+    const result = await limitsHandler({ nominal: 36, designation: "H7" });
+    expect(result.upper_deviation).toBe(0.025);
+    expect(result.lower_deviation).toBe(0);
+    expect(result.lower_limit).toBe(36);
+    expect(result.upper_limit).toBe(36.025);
+    expect(result.hole).toBe(true);
+    expect(result.standard).toBe("iso286-1:2010");
+  });
+
+  it("reports the standard transition fit", async () => {
+    const result = await fitHandler({ nominal: 36, hole: "H7", shaft: "n6" });
+    expect(result.type).toBe("transition");
+    expect(result.maximum_clearance).toBeCloseTo(0.008, 9);
+    expect(result.maximum_interference).toBeCloseTo(0.033, 9);
+    expect(result.limits.hole).toEqual({
+      upper_deviation: 0.025,
+      lower_deviation: 0,
+    });
+  });
+
+  it("reports a grade in both units with the size step it came from", async () => {
+    const result = await gradeHandler({ nominal: 20, grade: 7 });
+    expect(result.grade).toBe("IT7");
+    expect(result.tolerance_micrometres).toBe(21);
+    expect(result.tolerance_mm).toBe(0.021);
+    expect(result.size_step_mm).toEqual({ over: 18, up_to: 30 });
+  });
+
+  it("lists the whole published grade table", async () => {
+    const result = await tableHandler();
+    const steps = result.steps as Array<{ grades: Record<string, number> }>;
+    expect(steps).toHaveLength(13);
+    expect(steps[0]!.grades.IT7).toBe(10);
+    expect(steps[12]!.grades.IT18).toBe(9700);
+  });
+});

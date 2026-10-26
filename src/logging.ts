@@ -1,5 +1,5 @@
-import pino from 'pino';
-import { SERVER_NAME } from './identity.js';
+import pino from "pino";
+import { SERVER_NAME } from "./identity.js";
 
 // Structured server logging. pino writes newline-delimited JSON to stderr (fd 2);
 // stdout is the MCP stdio channel and must stay clean. Secret-like fields are
@@ -11,36 +11,40 @@ import { SERVER_NAME } from './identity.js';
 export const logger = pino(
   {
     name: SERVER_NAME,
-    level: process.env.MCP_LOG_LEVEL ?? 'info',
+    level: process.env.MCP_LOG_LEVEL ?? "info",
     base: {
       service: SERVER_NAME,
       traceId: process.env.MCP_TRACE_ID,
       runId: process.env.MCP_TRACE_RUN_ID,
     },
     redact: {
-      paths: ['apiKey', 'authorization', 'token', 'password', 'secret'],
-      censor: '[REDACTED]',
+      paths: ["apiKey", "authorization", "token", "password", "secret"],
+      censor: "[REDACTED]",
     },
   },
   pino.destination(2),
 );
 
 function paint(code: string, value: string): string {
-  return process.env.MCP_LOG_COLOR === '0' ? value : `\u001b[${code}m${value}\u001b[0m`;
+  return process.env.MCP_LOG_COLOR === "0"
+    ? value
+    : `\u001b[${code}m${value}\u001b[0m`;
 }
 
 function human(event: string, fields: Record<string, unknown>): string {
-  const tool = typeof fields.tool === 'string' ? fields.tool : undefined;
-  const duration = typeof fields.durationMs === 'number' ? ` (${fields.durationMs}ms)` : '';
-  const error = typeof fields.error === 'string' ? `: ${fields.error}` : '';
-  if (event === 'tool.completed')
-    return `${paint(fields.isError ? '31' : '32', `[${SERVER_NAME}] [${fields.isError ? 'error' : 'ok'}]`)} ${paint('33', tool ?? 'tool')}${duration}`;
-  if (event === 'tool.failed')
-    return `${paint('31', `[${SERVER_NAME}] [fail]`)} ${paint('33', tool ?? 'tool')}${duration}${error}`;
-  if (event === 'server.started') {
-    const tools = fields.tools !== undefined ? ` tools=${fields.tools}` : '';
-    const protocol = fields.protocol !== undefined ? ` protocol=${fields.protocol}` : '';
-    return paint('36', `[${SERVER_NAME}] ready`) + tools + protocol;
+  const tool = typeof fields.tool === "string" ? fields.tool : undefined;
+  const duration =
+    typeof fields.durationMs === "number" ? ` (${fields.durationMs}ms)` : "";
+  const error = typeof fields.error === "string" ? `: ${fields.error}` : "";
+  if (event === "tool.completed")
+    return `${paint(fields.isError ? "31" : "32", `[${SERVER_NAME}] [${fields.isError ? "error" : "ok"}]`)} ${paint("33", tool ?? "tool")}${duration}`;
+  if (event === "tool.failed")
+    return `${paint("31", `[${SERVER_NAME}] [fail]`)} ${paint("33", tool ?? "tool")}${duration}${error}`;
+  if (event === "server.started") {
+    const tools = fields.tools !== undefined ? ` tools=${fields.tools}` : "";
+    const protocol =
+      fields.protocol !== undefined ? ` protocol=${fields.protocol}` : "";
+    return paint("36", `[${SERVER_NAME}] ready`) + tools + protocol;
   }
   return `[${SERVER_NAME}] ${event}`;
 }
@@ -55,8 +59,8 @@ export function logEvent(
   fields: Record<string, unknown> = {},
   message?: string,
 ): void {
-  if (process.env.MCP_LOG_FORMAT === 'human') {
-    if (event === 'tool.started') return;
+  if (process.env.MCP_LOG_FORMAT === "human") {
+    if (event === "tool.started") return;
     process.stderr.write(`${human(event, fields)}\n`);
     return;
   }
