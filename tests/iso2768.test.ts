@@ -113,7 +113,8 @@ describe("ISO 2768-1 conformance", () => {
   it("rejects a stated deviation looser than the note allows", () => {
     const result = compliesWithGeneralTolerance(45, "m", 0.5);
     expect(result.complies).toBe(false);
-    expect(result.note).toMatch(/tighter stated tolerance is allowed/i);
+    expect(result.note).toMatch(/numerical comparison only/i);
+    expect(result.note).toMatch(/no individual tolerance/i);
   });
 
   it("treats the deviations as symmetric", () => {

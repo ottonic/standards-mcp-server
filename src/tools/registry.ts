@@ -181,10 +181,9 @@ export const TOOL_REGISTRY: ToolSpec[] = [
     name: "general_tolerance_complies",
     title: "Check a Deviation Against an ISO 2768-1 Note",
     description:
-      "Compare a deviation the drawing states for one dimension against what the general-tolerance note permits, and report whether it complies. " +
-      "Answers the common review question: is +/-0.1 on a 45 mm dimension acceptable under an ISO 2768-m note? " +
-      "A tighter stated tolerance is always allowed, so a non-compliant result means the stated tolerance is looser than the note. " +
-      "This compares the two numbers; whether the dimension can actually be produced to either value is not something this server knows.",
+      "Compare a stated deviation numerically against the ISO 2768-1 general-tolerance value for one dimension. " +
+      "This is only a numeric comparison: first establish that the dimension has no individual tolerance indication, " +
+      "because the general tolerance applies only to unmarked dimensions. The result does not establish process capability.",
     purpose:
       "Whether a stated deviation is within the general-tolerance class.",
     examples: iso2768.complianceExamples,

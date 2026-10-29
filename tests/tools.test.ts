@@ -190,6 +190,8 @@ describe("ISO 2768 tool handlers", () => {
     expect(result.permitted_deviation).toBe(0.3);
     expect(result.complies).toBe(true);
     expect(result.unit).toBe("mm");
+    expect(result.note).toMatch(/numerical comparison only/i);
+    expect(result.note).toMatch(/no individual tolerance/i);
   });
 
   it("reads the class out of a drawing-style note", async () => {

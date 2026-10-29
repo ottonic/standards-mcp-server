@@ -255,7 +255,8 @@ export function compliesWithGeneralTolerance(
     note:
       `Compared a stated +/-${stated} ${tolerance.unit} against the ${tolerance.deviation} ${tolerance.unit} ` +
       `permitted by ISO 2768-${tolerance.class} for ${tolerance.appliesTo}. ` +
-      "A tighter stated tolerance is allowed; this says nothing about whether it can be achieved.",
+      "This is a numerical comparison only: a general tolerance applies only when no individual tolerance is indicated. " +
+      "It says nothing about whether a tolerance can be achieved.",
   };
 }
 
