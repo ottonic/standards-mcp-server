@@ -9,12 +9,12 @@
     "id": "1439866984"
   },
   "websiteUrl": "https://github.com/ottonic/standards-mcp-server#readme",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "standards-mcp-server",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "transport": {
         "type": "stdio"
       }
