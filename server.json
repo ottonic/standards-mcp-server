@@ -1,0 +1,23 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.ottonic/standards-mcp-server",
+  "title": "Ottoref — Standards MCP Server",
+  "description": "Reference standards for mechanical engineering: ISO 286 limits and fits, ISO 2768 general tolerances, typical material properties, and published process feasibility limits.",
+  "repository": {
+    "url": "https://github.com/ottonic/standards-mcp-server",
+    "source": "github",
+    "id": "1439866984"
+  },
+  "websiteUrl": "https://github.com/ottonic/standards-mcp-server#readme",
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "standards-mcp-server",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}
