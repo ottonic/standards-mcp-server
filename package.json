@@ -1,6 +1,9 @@
 {
   "name": "standards-mcp-server",
   "version": "0.1.0",
+  "description": "Reference standards for mechanical engineering: ISO 286 limits and fits, ISO 2768 general tolerances, typical material properties, and published process feasibility limits.",
+  "author": "Matt Mohandiss <mattmohandiss@gmail.com>",
+  "license": "MIT",
   "type": "module",
   "engines": {
     "node": ">=24"
@@ -13,7 +16,8 @@
     "dist/src",
     "dist/package.json",
     "!dist/**/*.map",
-    "README.md"
+    "README.md",
+    "THIRD_PARTY_NOTICES.md"
   ],
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.build.json",
