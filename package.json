@@ -1,6 +1,6 @@
 {
   "name": "standards-mcp-server",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Reference standards for mechanical engineering: ISO 286 limits and fits, ISO 2768 general tolerances, typical material properties, and published process feasibility limits.",
   "author": "Matt Mohandiss <mattmohandiss@gmail.com>",
   "license": "MIT",
