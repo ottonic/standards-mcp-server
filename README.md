@@ -94,8 +94,8 @@ just test
 ## Packaging
 
 `npm pack` builds first and includes the compiled server and this README; tests
-and source maps are excluded. Install the tarball to check the
-`standards-mcp-server` executable with a compatible MCP client.
+and source maps are excluded. Install the tarball to check the `standards-mcp`
+executable with a compatible MCP client.
 
 ## License
 
