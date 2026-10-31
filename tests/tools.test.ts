@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { TOOL_REGISTRY, PUBLIC_TOOL_NAMES } from "../src/tools/registry.js";
+import { describe, expect, it } from 'vitest';
+import { TOOL_REGISTRY, PUBLIC_TOOL_NAMES } from '../src/tools/registry.js';
 import {
   applicabilityHandler,
   fitHandler,
@@ -7,38 +7,38 @@ import {
   gradeHandler,
   limitsHandler,
   tableHandler,
-} from "../src/tools/iso286-tools.js";
+} from '../src/tools/iso286-tools.js';
 import {
   complianceHandler,
   generalHandler,
   tableHandler as iso2768TableHandler,
-} from "../src/tools/iso2768-tools.js";
+} from '../src/tools/iso2768-tools.js';
 
 /**
  * The tool layer is a contract with a caller that cannot read the source: a
  * wrong field name or a missing refusal is the difference between a usable
  * answer and a plausible-looking one.
  */
-describe("tool registry", () => {
-  it("exposes twelve uniquely named tools", () => {
+describe('tool registry', () => {
+  it('exposes twelve uniquely named tools', () => {
     expect(PUBLIC_TOOL_NAMES).toEqual([
-      "list_standards",
-      "limits_of_size",
-      "iso286_applicability",
-      "fit",
-      "it_grade",
-      "general_tolerance",
-      "general_tolerance_complies",
-      "material_properties",
-      "material_coverage",
-      "process_limits",
-      "process_feasibility",
-      "process_list",
+      'list_standards',
+      'limits_of_size',
+      'iso286_applicability',
+      'fit',
+      'it_grade',
+      'general_tolerance',
+      'general_tolerance_complies',
+      'material_properties',
+      'material_coverage',
+      'process_limits',
+      'process_feasibility',
+      'process_list',
     ]);
     expect(new Set(PUBLIC_TOOL_NAMES).size).toBe(PUBLIC_TOOL_NAMES.length);
   });
 
-  it("gives every tool a declared output schema and at least one example", () => {
+  it('gives every tool a declared output schema and at least one example', () => {
     for (const tool of TOOL_REGISTRY) {
       expect(tool.outputSchema).toBeDefined();
       expect(tool.examples.length).toBeGreaterThan(0);
@@ -46,91 +46,89 @@ describe("tool registry", () => {
     }
   });
 
-  it("states the limits and the non-verdict boundary in the descriptions", () => {
+  it('states the limits and the non-verdict boundary in the descriptions', () => {
     // The eval grades whether the caller distinguishes facts from judgements, so
     // the tool text has to make that distinction itself.
-    const fit = TOOL_REGISTRY.find((tool) => tool.name === "fit")!;
+    const fit = TOOL_REGISTRY.find((tool) => tool.name === 'fit')!;
     expect(fit.description).toMatch(/not whether it is the right choice/i);
-    const limits = TOOL_REGISTRY.find(
-      (tool) => tool.name === "limits_of_size",
-    )!;
+    const limits = TOOL_REGISTRY.find((tool) => tool.name === 'limits_of_size')!;
     expect(limits.description).toMatch(/engineering decision/i);
-    const list = TOOL_REGISTRY.find((tool) => tool.name === "list_standards")!;
+    const list = TOOL_REGISTRY.find((tool) => tool.name === 'list_standards')!;
     expect(list.description).toMatch(/refused/i);
   });
 });
 
-describe("tool handlers", () => {
-  it("reports deviations and limits for a hole", async () => {
-    const result = await limitsHandler({ nominal: 36, designation: "H7" });
+describe('tool handlers', () => {
+  it('reports deviations and limits for a hole', async () => {
+    const result = await limitsHandler({ nominal: 36, designation: 'H7' });
     expect(result.upper_deviation).toBe(0.025);
     expect(result.lower_deviation).toBe(0);
     expect(result.lower_limit).toBe(36);
     expect(result.upper_limit).toBe(36.025);
     expect(result.hole).toBe(true);
-    expect(result.standard).toBe("iso286-1:2010+cor1:2013");
+    expect(result.standard).toBe('iso286-1:2010+cor1:2013');
   });
 
-  it("reports exact ISO 286 support intervals and sparse gaps", async () => {
-    const h7 = await applicabilityHandler({ designation: "H7" });
+  it('reports exact ISO 286 support intervals and sparse gaps', async () => {
+    const h7 = await applicabilityHandler({ designation: 'H7' });
     expect(h7.supported).toBe(true);
     expect(h7.applicable_size_intervals_mm).toEqual([{ over: 0, up_to: 500 }]);
 
-    const n9 = await applicabilityHandler({ designation: "N9" });
+    const n9 = await applicabilityHandler({ designation: 'N9' });
     expect(n9.applicable_size_intervals_mm).toEqual([{ over: 1, up_to: 500 }]);
 
-    const k9 = await applicabilityHandler({ designation: "K9" });
+    const k9 = await applicabilityHandler({ designation: 'K9' });
     expect(k9.applicable_size_intervals_mm).toEqual([{ over: 0, up_to: 3 }]);
 
-    const t6 = await applicabilityHandler({ designation: "t6" });
+    const t6 = await applicabilityHandler({ designation: 't6' });
     expect(t6.applicable_size_intervals_mm).toEqual([{ over: 24, up_to: 500 }]);
 
-    const j8 = await applicabilityHandler({ designation: "j8" });
+    const j8 = await applicabilityHandler({ designation: 'j8' });
     expect(j8.supported).toBe(true);
     expect(j8.applicable_size_intervals_mm).toEqual([{ over: 0, up_to: 3 }]);
-    await expect(applicabilityHandler({ designation: "H19" })).rejects.toThrow(
+    await expect(applicabilityHandler({ designation: 'H19' })).rejects.toThrow(
       /not a standard tolerance grade/,
     );
   });
 
-  it("exposes corrected K/M/N, P–ZC, and J hole classes", async () => {
-    const k = await limitsHandler({ nominal: 20, designation: "K7" });
+  it('exposes corrected K/M/N, P–ZC, and J hole classes', async () => {
+    const k = await limitsHandler({ nominal: 20, designation: 'K7' });
     expect(k.upper_deviation).toBe(0.006);
     expect(k.lower_deviation).toBe(-0.015);
 
-    const k8 = await limitsHandler({ nominal: 20, designation: "K8" });
+    const k8 = await limitsHandler({ nominal: 20, designation: 'K8' });
     expect(k8.upper_deviation).toBe(0.01);
     expect(k8.lower_deviation).toBe(-0.023);
 
-    const n9 = await limitsHandler({ nominal: 20, designation: "N9" });
+    const n9 = await limitsHandler({ nominal: 20, designation: 'N9' });
     expect(n9.upper_deviation).toBe(0);
     expect(n9.lower_deviation).toBe(-0.052);
 
     // Table 3 is zero through 3 mm, and N mirrors its fundamental there.
-    const smallK = await limitsHandler({ nominal: 3, designation: "K6" });
+    const smallK = await limitsHandler({ nominal: 3, designation: 'K6' });
     expect(smallK.upper_deviation).toBe(0);
     expect(smallK.lower_deviation).toBe(-0.006);
-    const smallN = await limitsHandler({ nominal: 3, designation: "N9" });
+    const smallN = await limitsHandler({ nominal: 3, designation: 'N9' });
     expect(smallN.upper_deviation).toBe(-0.004);
     expect(smallN.lower_deviation).toBe(-0.029);
 
     // Table 4's j value is ei, so the upper deviation is ei + IT.
-    const j6 = await limitsHandler({ nominal: 20, designation: "j6" });
+    const j6 = await limitsHandler({ nominal: 20, designation: 'j6' });
     expect(j6.upper_deviation).toBe(0.009);
     expect(j6.lower_deviation).toBe(-0.004);
 
-    const p = await limitsHandler({ nominal: 28, designation: "P9" });
+    const p = await limitsHandler({ nominal: 28, designation: 'P9' });
     expect(p.upper_deviation).toBe(-0.022);
     expect(p.lower_deviation).toBe(-0.074);
 
-    const j = await limitsHandler({ nominal: 20, designation: "J6" });
+    const j = await limitsHandler({ nominal: 20, designation: 'J6' });
     expect(j.upper_deviation).toBe(0.008);
     expect(j.lower_deviation).toBe(-0.005);
   });
 
-  it("reports the standard transition fit", async () => {
-    const result = await fitHandler({ nominal: 36, hole: "H7", shaft: "n6" });
-    expect(result.type).toBe("transition");
+  it('reports the standard transition fit', async () => {
+    const result = await fitHandler({ nominal: 36, hole: 'H7', shaft: 'n6' });
+    expect(result.type).toBe('transition');
     expect(result.maximum_clearance).toBeCloseTo(0.008, 9);
     expect(result.maximum_interference).toBeCloseTo(0.033, 9);
     expect(result.limits.hole).toEqual({
@@ -140,38 +138,36 @@ describe("tool handlers", () => {
     expect(result.minimum_interference).toBe(0);
   });
 
-  it("returns both interference bounds for a fully interfering fit", async () => {
-    const result = await fitHandler({ nominal: 36, hole: "H7", shaft: "s6" });
-    expect(result.type).toBe("interference");
+  it('returns both interference bounds for a fully interfering fit', async () => {
+    const result = await fitHandler({ nominal: 36, hole: 'H7', shaft: 's6' });
+    expect(result.type).toBe('interference');
     expect(result.minimum_interference).toBeCloseTo(0.018, 9);
     expect(result.maximum_interference).toBeCloseTo(0.059, 9);
   });
 
-  it("exposes the source-bounded 40 H7/u6 fit through the MCP handler", async () => {
-    const result = await fitHandler({ nominal: 40, hole: "H7", shaft: "u6" });
-    expect(result.type).toBe("interference");
+  it('exposes the source-bounded 40 H7/u6 fit through the MCP handler', async () => {
+    const result = await fitHandler({ nominal: 40, hole: 'H7', shaft: 'u6' });
+    expect(result.type).toBe('interference');
     expect(result.minimum_interference).toBeCloseTo(0.035, 9);
     expect(result.maximum_interference).toBeCloseTo(0.076, 9);
-    expect(result.standard).toBe("iso286-1:2010+cor1:2013");
+    expect(result.standard).toBe('iso286-1:2010+cor1:2013');
   });
 
-  it("reports a grade in both units with the size step it came from", async () => {
-    const result = await gradeHandler({ nominal: 20, grade: "IT7" });
-    expect(result.grade).toBe("IT7");
+  it('reports a grade in both units with the size step it came from', async () => {
+    const result = await gradeHandler({ nominal: 20, grade: 'IT7' });
+    expect(result.grade).toBe('IT7');
     expect(result.tolerance_micrometres).toBe(21);
     expect(result.tolerance_mm).toBe(0.021);
     expect(result.size_step_mm).toEqual({ over: 18, up_to: 30 });
 
-    const it01 = await gradeHandler({ nominal: 20, grade: "IT01" });
+    const it01 = await gradeHandler({ nominal: 20, grade: 'IT01' });
     expect(it01.tolerance_micrometres).toBe(0.6);
-    const it0 = await gradeHandler({ nominal: 20, grade: "IT0" });
+    const it0 = await gradeHandler({ nominal: 20, grade: 'IT0' });
     expect(it0.tolerance_micrometres).toBe(1);
-    expect(gradeSchema.safeParse({ nominal: 20, grade: 7 }).success).toBe(
-      false,
-    );
+    expect(gradeSchema.safeParse({ nominal: 20, grade: 7 }).success).toBe(false);
   });
 
-  it("lists the whole published grade table", async () => {
+  it('lists the whole published grade table', async () => {
     const result = await tableHandler();
     const steps = result.steps as Array<{ grades: Record<string, number> }>;
     expect(steps).toHaveLength(13);
@@ -180,49 +176,49 @@ describe("tool handlers", () => {
   });
 });
 
-describe("ISO 2768 tool handlers", () => {
-  it("answers the common review question: +/-0.1 on a 45 mm dimension under ISO 2768-m", async () => {
+describe('ISO 2768 tool handlers', () => {
+  it('answers the common review question: +/-0.1 on a 45 mm dimension under ISO 2768-m', async () => {
     const result = await complianceHandler({
       nominal: 45,
-      tolerance_class: "m",
+      tolerance_class: 'm',
       stated_deviation: 0.1,
     });
     expect(result.permitted_deviation).toBe(0.3);
     expect(result.complies).toBe(true);
-    expect(result.unit).toBe("mm");
+    expect(result.unit).toBe('mm');
     expect(result.note).toMatch(/numerical comparison only/i);
     expect(result.note).toMatch(/no individual tolerance/i);
   });
 
-  it("reads the class out of a drawing-style note", async () => {
+  it('reads the class out of a drawing-style note', async () => {
     const result = await generalHandler({
       nominal: 45,
-      tolerance_class: "ISO 2768-m",
+      tolerance_class: 'ISO 2768-m',
     });
     expect(result.deviation).toBe(0.3);
-    expect(result.kind).toBe("linear");
-    expect(result.applies_to).toBe("linear dimensions except broken edges");
+    expect(result.kind).toBe('linear');
+    expect(result.applies_to).toBe('linear dimensions except broken edges');
   });
 
-  it("routes broken edges and angles to their own tables", async () => {
+  it('routes broken edges and angles to their own tables', async () => {
     const edge = await generalHandler({
       nominal: 45,
-      tolerance_class: "f",
-      kind: "broken-edge",
+      tolerance_class: 'f',
+      kind: 'broken-edge',
     });
     expect(edge.deviation).toBe(1);
-    expect(edge.applies_to).toBe("external radii and chamfer heights");
+    expect(edge.applies_to).toBe('external radii and chamfer heights');
     const angle = await generalHandler({
       nominal: 45,
-      tolerance_class: "f",
-      kind: "angular",
+      tolerance_class: 'f',
+      kind: 'angular',
     });
-    expect(angle.unit).toBe("deg");
+    expect(angle.unit).toBe('deg');
   });
 
-  it("names the withdrawn ISO 2768-2 in its table listing", async () => {
+  it('names the withdrawn ISO 2768-2 in its table listing', async () => {
     const result = await iso2768TableHandler();
-    expect(result.standard).toBe("iso2768-1:1989");
+    expect(result.standard).toBe('iso2768-1:1989');
     expect(String(result.note)).toMatch(/ISO 22081:2021/);
     expect(result.steps).toHaveLength(8);
   });

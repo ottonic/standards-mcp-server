@@ -16,32 +16,28 @@
  * data can call them at initialisation time without a circular import.
  */
 
-import { createHash } from "node:crypto";
-import type { MaterialGrade } from "./material-conversion.js";
-import { MATERIAL_GRADES } from "../data/materials.generated.js";
+import { createHash } from 'node:crypto';
+import type { MaterialGrade } from './material-conversion.js';
+import { MATERIAL_GRADES } from '../data/materials.generated.js';
 
-export type {
-  MaterialGrade,
-  PropertyName,
-  PropertyValue,
-} from "./material-conversion.js";
-export { buildGrades, convertProperty } from "./material-conversion.js";
+export type { MaterialGrade, PropertyName, PropertyValue } from './material-conversion.js';
+export { buildGrades, convertProperty } from './material-conversion.js';
 
 /** Digest of the exact converted material snapshot shipped by this build. */
-const MATERIALS_DATASET_REVISION = `sha256:${createHash("sha256")
+const MATERIALS_DATASET_REVISION = `sha256:${createHash('sha256')
   .update(JSON.stringify(MATERIAL_GRADES))
-  .digest("hex")}`;
+  .digest('hex')}`;
 
 export const MATERIALS_SOURCE = {
-  name: "KittyCAD/material-properties",
-  license: "Apache-2.0",
-  basis: "typical" as const,
+  name: 'KittyCAD/material-properties',
+  license: 'Apache-2.0',
+  basis: 'typical' as const,
   revision: MATERIALS_DATASET_REVISION,
   revision_note:
-    "Digest of the embedded converted dataset; it identifies this snapshot, not an upstream release or material certification.",
+    'Digest of the embedded converted dataset; it identifies this snapshot, not an upstream release or material certification.',
   caveat:
-    "Typical handbook values, not design allowables. Do not use for a strength margin " +
-    "without an allowable from a qualified source.",
+    'Typical handbook values, not design allowables. Do not use for a strength margin ' +
+    'without an allowable from a qualified source.',
 };
 
 /** Every grade the reference holds. */
@@ -51,10 +47,7 @@ export const GRADES: readonly MaterialGrade[] = MATERIAL_GRADES;
 export function families(): string[] {
   return [
     ...new Set(
-      GRADES.map(
-        (grade) =>
-          grade.designation.split(" (")[1]?.replace(")", "") ?? "unknown",
-      ),
+      GRADES.map((grade) => grade.designation.split(' (')[1]?.replace(')', '') ?? 'unknown'),
     ),
   ].sort();
 }

@@ -1,5 +1,5 @@
-import { z } from "zod";
-import { domainError } from "../errors.js";
+import { z } from 'zod';
+import { domainError } from '../errors.js';
 import {
   ISO_286_EDITION,
   applicableSizeIntervals,
@@ -8,11 +8,10 @@ import {
   itTable,
   limitsOfSize,
   sizeStep,
-} from "../domain/iso286.js";
+} from '../domain/iso286.js';
 
 const nominal = z.number().positive().max(500).meta({
-  description:
-    "Nominal size in millimetres, above 0 and up to 500. Example: 36.",
+  description: 'Nominal size in millimetres, above 0 and up to 500. Example: 36.',
 });
 
 const designation = z
@@ -20,20 +19,20 @@ const designation = z
   .min(2)
   .meta({
     description:
-      "Tolerance class: a fundamental deviation letter and a grade, such as H7, g6 or n6. " +
-      "Uppercase is a hole, lowercase a shaft.",
+      'Tolerance class: a fundamental deviation letter and a grade, such as H7, g6 or n6. ' +
+      'Uppercase is a hole, lowercase a shaft.',
   });
 
 export const limitsSchema = z
   .object({
-    nominal: nominal.describe("Nominal size in millimetres."),
-    designation: designation.describe("Tolerance class, e.g. H7 or g6."),
+    nominal: nominal.describe('Nominal size in millimetres.'),
+    designation: designation.describe('Tolerance class, e.g. H7 or g6.'),
   })
   .strict();
 
 export const limitsExamples = [
-  { nominal: 36, designation: "H7" },
-  { nominal: 36, designation: "g6" },
+  { nominal: 36, designation: 'H7' },
+  { nominal: 36, designation: 'g6' },
 ];
 
 export async function limitsHandler(args: z.output<typeof limitsSchema>) {
@@ -49,26 +48,19 @@ export async function limitsHandler(args: z.output<typeof limitsSchema>) {
     tolerance: limits.tolerance,
     unit: limits.unit,
     standard: ISO_286_EDITION,
-    note: "Deviations are from the nominal size, in millimetres. A negative deviation is below nominal.",
+    note: 'Deviations are from the nominal size, in millimetres. A negative deviation is below nominal.',
   };
 }
 
 export const applicabilitySchema = z
   .object({
-    designation: designation.describe(
-      "Tolerance class in standard notation, e.g. H7, j5 or N9.",
-    ),
+    designation: designation.describe('Tolerance class in standard notation, e.g. H7, j5 or N9.'),
   })
   .strict();
 
-export const applicabilityExamples = [
-  { designation: "H7" },
-  { designation: "j5" },
-];
+export const applicabilityExamples = [{ designation: 'H7' }, { designation: 'j5' }];
 
-export async function applicabilityHandler(
-  args: z.output<typeof applicabilitySchema>,
-) {
+export async function applicabilityHandler(args: z.output<typeof applicabilitySchema>) {
   const intervals = applicableSizeIntervals(args.designation);
   return {
     designation: args.designation,
@@ -77,25 +69,23 @@ export async function applicabilityHandler(
       over,
       up_to: upTo,
     })),
-    interval_convention: "(over, up_to]",
+    interval_convention: '(over, up_to]',
     standard: ISO_286_EDITION,
-    note: "Only listed intervals are supported; gaps are deliberately not inferred.",
+    note: 'Only listed intervals are supported; gaps are deliberately not inferred.',
   };
 }
 
 export const fitSchema = z
   .object({
-    nominal: nominal.describe(
-      "Nominal size in millimetres, shared by the hole and shaft.",
-    ),
-    hole: designation.describe("Hole tolerance class, e.g. H7."),
-    shaft: designation.describe("Shaft tolerance class, e.g. g6 or n6."),
+    nominal: nominal.describe('Nominal size in millimetres, shared by the hole and shaft.'),
+    hole: designation.describe('Hole tolerance class, e.g. H7.'),
+    shaft: designation.describe('Shaft tolerance class, e.g. g6 or n6.'),
   })
   .strict();
 
 export const fitExamples = [
-  { nominal: 12, hole: "H7", shaft: "h6" },
-  { nominal: 36, hole: "H7", shaft: "n6" },
+  { nominal: 12, hole: 'H7', shaft: 'h6' },
+  { nominal: 36, hole: 'H7', shaft: 'n6' },
 ];
 
 export async function fitHandler(args: z.output<typeof fitSchema>) {
@@ -122,37 +112,32 @@ export async function fitHandler(args: z.output<typeof fitSchema>) {
       },
     },
     note:
-      "A negative minimum_clearance means the fit can interfere. " +
-      "Whether a fit is suitable for a joint is an engineering decision, not a value this server returns.",
+      'A negative minimum_clearance means the fit can interfere. ' +
+      'Whether a fit is suitable for a joint is an engineering decision, not a value this server returns.',
   };
 }
 
 const gradeLabels = [
-  "IT01",
-  "IT0",
+  'IT01',
+  'IT0',
   ...Array.from({ length: 18 }, (_, index) => `IT${index + 1}`),
 ] as const;
 
 export const gradeSchema = z
   .object({
-    nominal: nominal.describe("Nominal size in millimetres."),
+    nominal: nominal.describe('Nominal size in millimetres.'),
     grade: z.enum(gradeLabels).meta({
-      description:
-        "Standard tolerance grade in ISO notation: IT01, IT0, or IT1 to IT18.",
+      description: 'Standard tolerance grade in ISO notation: IT01, IT0, or IT1 to IT18.',
     }),
   })
   .strict();
 
-export const gradeExamples = [{ nominal: 36, grade: "IT7" }];
+export const gradeExamples = [{ nominal: 36, grade: 'IT7' }];
 
 export async function gradeHandler(args: z.output<typeof gradeSchema>) {
   const step = sizeStep(args.nominal);
   const grade =
-    args.grade === "IT01"
-      ? 0.1
-      : args.grade === "IT0"
-        ? 0
-        : Number(args.grade.slice(2));
+    args.grade === 'IT01' ? 0.1 : args.grade === 'IT0' ? 0 : Number(args.grade.slice(2));
   return {
     nominal: args.nominal,
     grade: args.grade,
@@ -167,11 +152,10 @@ export const tableSchema = z.object({}).strict();
 
 export async function tableHandler() {
   const steps = itTable();
-  if (steps.length === 0)
-    throw domainError("internal_error", "the tolerance table is empty");
+  if (steps.length === 0) throw domainError('internal_error', 'the tolerance table is empty');
   return {
     standard: ISO_286_EDITION,
-    unit: "micrometre",
+    unit: 'micrometre',
     size_range_mm: {
       over: steps[0]!.over,
       up_to: steps[steps.length - 1]!.upTo,
@@ -181,6 +165,6 @@ export async function tableHandler() {
       up_to: step.upTo,
       grades: step.grades,
     })),
-    note: "Published standard tolerance grades. Values are the standard table, not a computation.",
+    note: 'Published standard tolerance grades. Values are the standard table, not a computation.',
   };
 }

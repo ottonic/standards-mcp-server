@@ -8,19 +8,19 @@
  */
 
 export type PropertyName =
-  | "density"
-  | "yield_strength"
-  | "ultimate_strength"
-  | "youngs_modulus"
-  | "poissons_ratio"
-  | "elongation_at_break"
-  | "thermal_expansion"
-  | "max_service_temperature";
+  | 'density'
+  | 'yield_strength'
+  | 'ultimate_strength'
+  | 'youngs_modulus'
+  | 'poissons_ratio'
+  | 'elongation_at_break'
+  | 'thermal_expansion'
+  | 'max_service_temperature';
 
 export interface PropertyValue {
   value: number;
   unit: string;
-  basis: "typical";
+  basis: 'typical';
 }
 
 export interface MaterialGrade {
@@ -38,25 +38,22 @@ const UIN_PER_IN_F_TO_UM_PER_M_K = 1.8;
 
 /** Source key -> published name, unit and scale. */
 const PROPERTY_MAP: Readonly<
-  Record<
-    string,
-    { name: PropertyName; unit: string; scale: number; fahrenheit?: boolean }
-  >
+  Record<string, { name: PropertyName; unit: string; scale: number; fahrenheit?: boolean }>
 > = {
-  den: { name: "density", unit: "kg/m3", scale: LB_PER_IN3_TO_KG_PER_M3 },
-  yield_str: { name: "yield_strength", unit: "MPa", scale: PSI_TO_MPA },
-  ult_str: { name: "ultimate_strength", unit: "MPa", scale: PSI_TO_MPA },
-  moe: { name: "youngs_modulus", unit: "MPa", scale: PSI_TO_MPA },
-  pr: { name: "poissons_ratio", unit: "1", scale: 1 },
-  elongation: { name: "elongation_at_break", unit: "percent", scale: 1 },
+  den: { name: 'density', unit: 'kg/m3', scale: LB_PER_IN3_TO_KG_PER_M3 },
+  yield_str: { name: 'yield_strength', unit: 'MPa', scale: PSI_TO_MPA },
+  ult_str: { name: 'ultimate_strength', unit: 'MPa', scale: PSI_TO_MPA },
+  moe: { name: 'youngs_modulus', unit: 'MPa', scale: PSI_TO_MPA },
+  pr: { name: 'poissons_ratio', unit: '1', scale: 1 },
+  elongation: { name: 'elongation_at_break', unit: 'percent', scale: 1 },
   coef_thermal_exp: {
-    name: "thermal_expansion",
-    unit: "um/m/K",
+    name: 'thermal_expansion',
+    unit: 'um/m/K',
     scale: UIN_PER_IN_F_TO_UM_PER_M_K,
   },
   max_service_temp: {
-    name: "max_service_temperature",
-    unit: "degC",
+    name: 'max_service_temperature',
+    unit: 'degC',
     scale: 1,
     fahrenheit: true,
   },
@@ -72,7 +69,7 @@ export function convertProperty(
   raw: RawProperty,
 ): [PropertyName, PropertyValue] | undefined {
   const mapping = PROPERTY_MAP[key];
-  if (!mapping || typeof raw.val !== "number") return undefined;
+  if (!mapping || typeof raw.val !== 'number') return undefined;
   const scaled = raw.val * mapping.scale;
   const value = mapping.fahrenheit ? ((scaled - 32) * 5) / 9 : scaled;
   return [
@@ -80,7 +77,7 @@ export function convertProperty(
     {
       value: Number(value.toPrecision(6)),
       unit: mapping.unit,
-      basis: "typical",
+      basis: 'typical',
     },
   ];
 }
