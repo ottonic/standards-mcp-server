@@ -6,15 +6,12 @@
  * here, so an upstream change is a diff rather than a merge.
  */
 
-import type { MaterialGrade } from "../domain/material-conversion.js";
-import { buildGrades } from "../domain/material-conversion.js";
+import type { MaterialGrade } from '../domain/material-conversion.js';
+import { buildGrades } from '../domain/material-conversion.js';
 
 /* eslint-disable */
-const ALUMINUM: Record<
-  string,
-  Record<string, Record<string, { val: number }>>
-> = {
-  "2014": {
+const ALUMINUM: Record<string, Record<string, Record<string, { val: number }>>> = {
+  '2014': {
     T6: {
       den: { val: 0.101 },
       yield_str: { val: 59000 },
@@ -32,7 +29,7 @@ const ALUMINUM: Record<
       pr: { val: 0.33 },
     },
   },
-  "2024": {
+  '2024': {
     T4: {
       den: { val: 0.1 },
       yield_str: { val: 40000 },
@@ -42,7 +39,7 @@ const ALUMINUM: Record<
       pr: { val: 0.33 },
     },
   },
-  "5052": {
+  '5052': {
     H32: {
       den: { val: 0.097 },
       yield_str: { val: 23000 },
@@ -52,7 +49,7 @@ const ALUMINUM: Record<
       pr: { val: 0.33 },
     },
   },
-  "5083": {
+  '5083': {
     H116: {
       den: { val: 0.096 },
       yield_str: { val: 31000 },
@@ -78,7 +75,7 @@ const ALUMINUM: Record<
       pr: { val: 0.33 },
     },
   },
-  "6061": {
+  '6061': {
     T4: {
       den: { val: 0.098 },
       yield_str: { val: 16000 },
@@ -96,7 +93,7 @@ const ALUMINUM: Record<
       pr: { val: 0.33 },
     },
   },
-  "7075": {
+  '7075': {
     T6: {
       den: { val: 0.101 },
       yield_str: { val: 68000 },
@@ -115,10 +112,7 @@ const ALUMINUM: Record<
     },
   },
 };
-const CARBONSTEEL: Record<
-  string,
-  Record<string, Record<string, { val: number }>>
-> = {
+const CARBONSTEEL: Record<string, Record<string, Record<string, { val: number }>>> = {
   AISI_1020: {
     Hot: {
       den: { val: 0.283 },
@@ -224,10 +218,7 @@ const CARBONSTEEL: Record<
     },
   },
 };
-const CASTIRON: Record<
-  string,
-  Record<string, Record<string, { val: number }>>
-> = {
+const CASTIRON: Record<string, Record<string, Record<string, { val: number }>>> = {
   ASTM_A159: {
     G1800: {
       den: { val: 0.264 },
@@ -261,7 +252,7 @@ const CASTIRON: Record<
     },
   },
   ASTM_A536: {
-    "Grade_60-40-18": {
+    'Grade_60-40-18': {
       den: { val: 0.256 },
       yield_str: { val: 45000 },
       ult_str: { val: 60000 },
@@ -269,7 +260,7 @@ const CASTIRON: Record<
       moe: { val: 2450000 },
       pr: { val: 0.29 },
     },
-    "Grade_65-45-12": {
+    'Grade_65-45-12': {
       den: { val: 0.256 },
       yield_str: { val: 45000 },
       ult_str: { val: 65000 },
@@ -277,7 +268,7 @@ const CASTIRON: Record<
       moe: { val: 2450000 },
       pr: { val: 0.3 },
     },
-    "Grade_80-55-06": {
+    'Grade_80-55-06': {
       den: { val: 0.256 },
       yield_str: { val: 55000 },
       ult_str: { val: 80000 },
@@ -285,7 +276,7 @@ const CASTIRON: Record<
       moe: { val: 2450000 },
       pr: { val: 0.31 },
     },
-    "Grade_100-70-03": {
+    'Grade_100-70-03': {
       den: { val: 0.256 },
       yield_str: { val: 70000 },
       ult_str: { val: 100000 },
@@ -293,7 +284,7 @@ const CASTIRON: Record<
       moe: { val: 2450000 },
       pr: { val: 0.3 },
     },
-    "Grade_120-90-02": {
+    'Grade_120-90-02': {
       den: { val: 0.256 },
       yield_str: { val: 90000 },
       ult_str: { val: 120000 },
@@ -303,11 +294,8 @@ const CASTIRON: Record<
     },
   },
 };
-const COPPER: Record<
-  string,
-  Record<string, Record<string, { val: number }>>
-> = {
-  "70_30_Copper-Nickel": {
+const COPPER: Record<string, Record<string, Record<string, { val: number }>>> = {
+  '70_30_Copper-Nickel': {
     Annealed: {
       den: { val: 0.323 },
       yield_str: { val: 18000 },
@@ -325,7 +313,7 @@ const COPPER: Record<
       pr: { val: 0.3 },
     },
   },
-  "90_10_Copper-Nickel": {
+  '90_10_Copper-Nickel': {
     Annealed: {
       den: { val: 0.323 },
       yield_str: { val: 15000 },
@@ -390,10 +378,7 @@ const COPPER: Record<
     },
   },
 };
-const LOWALLOYSTEEL: Record<
-  string,
-  Record<string, Record<string, { val: number }>>
-> = {
+const LOWALLOYSTEEL: Record<string, Record<string, Record<string, { val: number }>>> = {
   AISI_4130: {
     Hot: {
       den: { val: 0.283 },
@@ -618,7 +603,7 @@ const LOWALLOYSTEEL: Record<
       pr: { val: 0.3 },
     },
   },
-  "HY-80": {
+  'HY-80': {
     Default: {
       den: { val: 0.28 },
       yield_str: { val: 80000 },
@@ -627,7 +612,7 @@ const LOWALLOYSTEEL: Record<
       pr: { val: 0.29 },
     },
   },
-  "HY-100": {
+  'HY-100': {
     Default: {
       den: { val: 0.284 },
       yield_str: { val: 100000 },
@@ -637,11 +622,8 @@ const LOWALLOYSTEEL: Record<
     },
   },
 };
-const NICKELALLOYS: Record<
-  string,
-  Record<string, Record<string, { val: number }>>
-> = {
-  "Hastelloy_C-276": {
+const NICKELALLOYS: Record<string, Record<string, Record<string, { val: number }>>> = {
+  'Hastelloy_C-276': {
     Annealed: {
       den: { val: 0.321 },
       yield_str: { val: 41000 },
@@ -765,7 +747,7 @@ const NICKELALLOYS: Record<
       pr: { val: 0.32 },
     },
   },
-  "Monel_K-500": {
+  'Monel_K-500': {
     Annealed_aged: {
       den: { val: 0.306 },
       yield_str: { val: 85000 },
@@ -784,10 +766,7 @@ const NICKELALLOYS: Record<
     },
   },
 };
-const STAINLESSSTEEL: Record<
-  string,
-  Record<string, Record<string, { val: number }>>
-> = {
+const STAINLESSSTEEL: Record<string, Record<string, Record<string, { val: number }>>> = {
   AISI_201: {
     Default: {
       den: { val: 0.289 },
@@ -906,7 +885,7 @@ const STAINLESSSTEEL: Record<
       pr: { val: 0.28 },
     },
   },
-  "15-5PH": {
+  '15-5PH': {
     H900: {
       den: { val: 0.283 },
       yield_str: { val: 170000 },
@@ -932,7 +911,7 @@ const STAINLESSSTEEL: Record<
       pr: { val: 0.27 },
     },
   },
-  "17-4PH": {
+  '17-4PH': {
     H900: {
       den: { val: 0.282 },
       yield_str: { val: 170000 },
@@ -958,7 +937,7 @@ const STAINLESSSTEEL: Record<
       pr: { val: 0.27 },
     },
   },
-  "17-7PH": {
+  '17-7PH': {
     TH1050: {
       den: { val: 0.276 },
       yield_str: { val: 150000 },
@@ -968,7 +947,7 @@ const STAINLESSSTEEL: Record<
       pr: { val: 0.28 },
     },
   },
-  "A-286": {
+  'A-286': {
     Default: {
       den: { val: 0.287 },
       yield_str: { val: 95000 },
@@ -999,10 +978,7 @@ const STAINLESSSTEEL: Record<
     },
   },
 };
-const TITANIUM: Record<
-  string,
-  Record<string, Record<string, { val: number }>>
-> = {
+const TITANIUM: Record<string, Record<string, Record<string, { val: number }>>> = {
   Pure: {
     Grade_2: {
       den: { val: 0.163 },
@@ -1013,7 +989,7 @@ const TITANIUM: Record<
       pr: { val: 0.34 },
     },
   },
-  "Ti-5Al-2_5Sn": {
+  'Ti-5Al-2_5Sn': {
     Annealed: {
       den: { val: 0.162 },
       yield_str: { val: 110000 },
@@ -1023,7 +999,7 @@ const TITANIUM: Record<
       pr: { val: 0.31 },
     },
   },
-  "Ti-6Al-4V": {
+  'Ti-6Al-4V': {
     Grade_5: {
       den: { val: 0.16 },
       yield_str: { val: 120000 },
@@ -1033,7 +1009,7 @@ const TITANIUM: Record<
       pr: { val: 0.31 },
     },
   },
-  "Ti-6Al-4V_ELI": {
+  'Ti-6Al-4V_ELI': {
     Grade_23: {
       den: { val: 0.16 },
       yield_str: { val: 110000 },
@@ -1043,7 +1019,7 @@ const TITANIUM: Record<
       pr: { val: 0.31 },
     },
   },
-  "Ti-5-1-1-1": {
+  'Ti-5-1-1-1': {
     Grade_32: {
       den: { val: 0.16 },
       yield_str: { val: 85000 },
@@ -1054,10 +1030,7 @@ const TITANIUM: Record<
     },
   },
 };
-const PRINTING: Record<
-  string,
-  Record<string, Record<string, { val: number }>>
-> = {
+const PRINTING: Record<string, Record<string, Record<string, { val: number }>>> = {
   ABS: {
     Default: {
       ult_str: { val: 5801 },
@@ -1119,13 +1092,13 @@ const PRINTING: Record<
 
 /** Every grade the source publishes, in SI, tagged as typical handbook values. */
 export const MATERIAL_GRADES: MaterialGrade[] = [
-  ...buildGrades("aluminum", ALUMINUM),
-  ...buildGrades("carbonsteel", CARBONSTEEL),
-  ...buildGrades("castiron", CASTIRON),
-  ...buildGrades("copper", COPPER),
-  ...buildGrades("lowalloysteel", LOWALLOYSTEEL),
-  ...buildGrades("nickelalloys", NICKELALLOYS),
-  ...buildGrades("stainlesssteel", STAINLESSSTEEL),
-  ...buildGrades("titanium", TITANIUM),
-  ...buildGrades("3dprinting", PRINTING),
+  ...buildGrades('aluminum', ALUMINUM),
+  ...buildGrades('carbonsteel', CARBONSTEEL),
+  ...buildGrades('castiron', CASTIRON),
+  ...buildGrades('copper', COPPER),
+  ...buildGrades('lowalloysteel', LOWALLOYSTEEL),
+  ...buildGrades('nickelalloys', NICKELALLOYS),
+  ...buildGrades('stainlesssteel', STAINLESSSTEEL),
+  ...buildGrades('titanium', TITANIUM),
+  ...buildGrades('3dprinting', PRINTING),
 ];

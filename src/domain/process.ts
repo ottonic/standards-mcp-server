@@ -21,16 +21,16 @@
  * caller.
  */
 
-import { domainError } from "../errors.js";
+import { domainError } from '../errors.js';
 
 export interface Length {
   value: number;
-  unit: "mm";
+  unit: 'mm';
 }
 
 export interface Angle {
   value: number;
-  unit: "deg";
+  unit: 'deg';
 }
 
 type Measurement = Length | Angle;
@@ -53,25 +53,25 @@ export interface ProcessLimits {
 }
 
 export const PROCESS_SOURCE = {
-  name: "Published rules of thumb and standard practice",
-  basis: "advisory" as const,
+  name: 'Published rules of thumb and standard practice',
+  basis: 'advisory' as const,
   caveat:
-    "Rules of thumb, not shop capability. A specific machine, tooling and operator can differ " +
-    "either way, so treat these as questions to ask a supplier rather than as limits.",
+    'Rules of thumb, not shop capability. A specific machine, tooling and operator can differ ' +
+    'either way, so treat these as questions to ask a supplier rather than as limits.',
 };
 
-const mm = (value: number): Length => ({ value, unit: "mm" });
-const deg = (value: number): Angle => ({ value, unit: "deg" });
+const mm = (value: number): Length => ({ value, unit: 'mm' });
+const deg = (value: number): Angle => ({ value, unit: 'deg' });
 
 /**
  * Published limits, per process. Values are the commonly cited figures; each
  * process lists where they come from so a caller can weigh them.
  */
 export const PROCESS_LIMITS: Readonly<Record<string, ProcessLimits>> = {
-  "cnc-machining": {
-    process: "cnc-machining",
-    title: "CNC machining (3-axis milling)",
-    appliesTo: "Prismatic metal and plastic parts cut with rotating tooling",
+  'cnc-machining': {
+    process: 'cnc-machining',
+    title: 'CNC machining (3-axis milling)',
+    appliesTo: 'Prismatic metal and plastic parts cut with rotating tooling',
     limits: {
       wall_thickness: {
         error: { min: mm(0.5) },
@@ -91,15 +91,15 @@ export const PROCESS_LIMITS: Readonly<Record<string, ProcessLimits>> = {
       },
     },
     notes: [
-      "Plastics tolerate less than metals: wall thickness minimums are roughly double.",
-      "These are for a light finishing cut; heavy roughing needs more stock.",
+      'Plastics tolerate less than metals: wall thickness minimums are roughly double.',
+      'These are for a light finishing cut; heavy roughing needs more stock.',
     ],
-    source: "Commonly published DFM guidance for machined parts",
+    source: 'Commonly published DFM guidance for machined parts',
   },
-  "sheet-metal": {
-    process: "sheet-metal",
-    title: "Sheet metal (laser/plasma cut, press-brake formed)",
-    appliesTo: "Flat parts cut from sheet and formed on a brake",
+  'sheet-metal': {
+    process: 'sheet-metal',
+    title: 'Sheet metal (laser/plasma cut, press-brake formed)',
+    appliesTo: 'Flat parts cut from sheet and formed on a brake',
     limits: {
       hole_diameter: {
         error: { min: mm(0.5), ratioOfThickness: 0.5 },
@@ -123,15 +123,15 @@ export const PROCESS_LIMITS: Readonly<Record<string, ProcessLimits>> = {
       },
     },
     notes: [
-      "A hole closer to a bend than about two thicknesses will deform when formed.",
-      "Bend radius below one thickness risks cracking, and depends on the alloy and temper.",
+      'A hole closer to a bend than about two thicknesses will deform when formed.',
+      'Bend radius below one thickness risks cracking, and depends on the alloy and temper.',
     ],
-    source: "Commonly published sheet-metal DFM guidance",
+    source: 'Commonly published sheet-metal DFM guidance',
   },
-  "injection-molding": {
-    process: "injection-molding",
-    title: "Injection moulding",
-    appliesTo: "Thermoplastic parts formed in a two-part mould",
+  'injection-molding': {
+    process: 'injection-molding',
+    title: 'Injection moulding',
+    appliesTo: 'Thermoplastic parts formed in a two-part mould',
     limits: {
       wall_thickness: {
         error: { min: mm(0.5) },
@@ -147,17 +147,17 @@ export const PROCESS_LIMITS: Readonly<Record<string, ProcessLimits>> = {
       },
     },
     notes: [
-      "The draft angle values are in degrees, not millimetres, and are the one limit here " +
-        "whose unit is not a length.",
-      "Wall thickness should be as uniform as the design allows; variation is what causes sink and warp.",
-      "Draft requirement rises with surface texture: a textured face needs more draft than a polished one.",
+      'The draft angle values are in degrees, not millimetres, and are the one limit here ' +
+        'whose unit is not a length.',
+      'Wall thickness should be as uniform as the design allows; variation is what causes sink and warp.',
+      'Draft requirement rises with surface texture: a textured face needs more draft than a polished one.',
     ],
-    source: "Commonly published moulding DFM guidance",
+    source: 'Commonly published moulding DFM guidance',
   },
-  "additive-sls": {
-    process: "additive-sls",
-    title: "Additive manufacturing (SLS)",
-    appliesTo: "Powder-bed fusion of polymer parts",
+  'additive-sls': {
+    process: 'additive-sls',
+    title: 'Additive manufacturing (SLS)',
+    appliesTo: 'Powder-bed fusion of polymer parts',
     limits: {
       wall_thickness: {
         error: { min: mm(0.7) },
@@ -167,8 +167,8 @@ export const PROCESS_LIMITS: Readonly<Record<string, ProcessLimits>> = {
         error: { min: mm(0.5) },
       },
     },
-    notes: ["No draft is needed: the part is not ejected from a mould."],
-    source: "Commonly published SLS DFM guidance",
+    notes: ['No draft is needed: the part is not ejected from a mould.'],
+    source: 'Commonly published SLS DFM guidance',
   },
 };
 
@@ -184,14 +184,14 @@ export function processLimits(process: string): ProcessLimits {
   const limits = PROCESS_LIMITS[process.toLowerCase()];
   if (!limits) {
     throw domainError(
-      "unknown_process",
-      `'${process}' is not a process this server knows. Available: ${Object.keys(PROCESS_LIMITS).join(", ")}`,
+      'unknown_process',
+      `'${process}' is not a process this server knows. Available: ${Object.keys(PROCESS_LIMITS).join(', ')}`,
     );
   }
   return limits;
 }
 
-export type Verdict = "within" | "warning" | "exceeds";
+export type Verdict = 'within' | 'warning' | 'exceeds';
 
 export interface LimitCheck {
   feature: string;
@@ -199,7 +199,7 @@ export interface LimitCheck {
   measured: number;
   unit: string;
   verdict: Verdict;
-  thresholdApplied: { kind: "absolute" | "thickness-ratio"; value: number };
+  thresholdApplied: { kind: 'absolute' | 'thickness-ratio'; value: number };
   limit: number;
   basis: string;
   source: string;
@@ -223,41 +223,37 @@ export function checkLimit(
   const threshold = options.overrides?.[feature] ?? limits.limits[feature];
   if (!threshold) {
     throw domainError(
-      "unknown_feature",
-      `'${feature}' is not a limit for ${process}. Available: ${Object.keys(limits.limits).join(", ")}`,
+      'unknown_feature',
+      `'${feature}' is not a limit for ${process}. Available: ${Object.keys(limits.limits).join(', ')}`,
     );
   }
   if (!Number.isFinite(measured) || measured <= 0) {
-    throw domainError(
-      "invalid_measurement",
-      "the measured value must be a positive number",
-    );
+    throw domainError('invalid_measurement', 'the measured value must be a positive number');
   }
 
   const resolve = (
-    band: Threshold["error"],
+    band: Threshold['error'],
   ):
     | {
         limit: number;
-        unit: Measurement["unit"];
-        kind: "absolute" | "thickness-ratio";
+        unit: Measurement['unit'];
+        kind: 'absolute' | 'thickness-ratio';
       }
     | undefined => {
     if (!band) return undefined;
-    if (band.min)
-      return { limit: band.min.value, unit: band.min.unit, kind: "absolute" };
+    if (band.min) return { limit: band.min.value, unit: band.min.unit, kind: 'absolute' };
     if (band.ratioOfThickness !== undefined) {
       if (options.thickness === undefined) {
         throw domainError(
-          "thickness_required",
+          'thickness_required',
           `the ${feature} limit for ${process} is expressed as a ratio of material thickness, ` +
-            "so a thickness must be supplied",
+            'so a thickness must be supplied',
         );
       }
       return {
         limit: band.ratioOfThickness * options.thickness,
-        unit: "mm",
-        kind: "thickness-ratio",
+        unit: 'mm',
+        kind: 'thickness-ratio',
       };
     }
     return undefined;
@@ -265,20 +261,17 @@ export function checkLimit(
 
   const error = resolve(threshold.error);
   const warning = resolve(threshold.warning);
-  let verdict: Verdict = "within";
+  let verdict: Verdict = 'within';
   let applied = error ?? warning;
   if (error && measured < error.limit) {
-    verdict = "exceeds";
+    verdict = 'exceeds';
     applied = error;
   } else if (warning && measured < warning.limit) {
-    verdict = "warning";
+    verdict = 'warning';
     applied = warning;
   }
   if (!applied) {
-    throw domainError(
-      "unknown_feature",
-      `${feature} has no threshold for ${process}`,
-    );
+    throw domainError('unknown_feature', `${feature} has no threshold for ${process}`);
   }
 
   return {
@@ -292,11 +285,11 @@ export function checkLimit(
     basis: PROCESS_SOURCE.basis,
     source: limits.source,
     note:
-      verdict === "within"
-        ? "Within the published rule of thumb. That is not a statement that the feature is economical or that a specific shop can hold it."
-        : verdict === "warning"
-          ? "Below the recommended value but above the hard limit. Makeable, and worth confirming with the supplier."
-          : "Below the published hard limit. Expect this to need a design change or a different process.",
+      verdict === 'within'
+        ? 'Within the published rule of thumb. That is not a statement that the feature is economical or that a specific shop can hold it.'
+        : verdict === 'warning'
+          ? 'Below the recommended value but above the hard limit. Makeable, and worth confirming with the supplier.'
+          : 'Below the published hard limit. Expect this to need a design change or a different process.',
   };
 }
 

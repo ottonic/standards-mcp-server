@@ -19,28 +19,11 @@ export const jHoleShaftRanges = [
  * Table 4's j columns are labelled "Lower deviation, ei". j5 and j6 share a
  * column; j8 is published only at the first size step.
  */
-export const shaftJLowerDeviationUm: Record<
-  number,
-  readonly (number | null)[]
-> = {
+export const shaftJLowerDeviationUm: Record<number, readonly (number | null)[]> = {
   5: [-2, -2, -2, -3, -4, -5, -7, -9, -11, -13, -16, -18, -20],
   6: [-2, -2, -2, -3, -4, -5, -7, -9, -11, -13, -16, -18, -20],
   7: [-4, -4, -5, -6, -8, -10, -12, -15, -18, -21, -26, -28, -32],
-  8: [
-    -6,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-  ],
+  8: [-6, null, null, null, null, null, null, null, null, null, null, null, null],
 };
 
 /** Table 2's J columns are upper deviations ES. */

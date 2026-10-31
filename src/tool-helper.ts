@@ -1,6 +1,6 @@
-import type { CallToolResult } from "@modelcontextprotocol/server";
-import { describeError } from "./errors.js";
-import { logEvent } from "./logging.js";
+import type { CallToolResult } from '@modelcontextprotocol/server';
+import { describeError } from './errors.js';
+import { logEvent } from './logging.js';
 
 /**
  * Run one tool implementation and shape the result for MCP.
@@ -15,26 +15,26 @@ export async function runTool<T extends Record<string, unknown>>(
   fn: () => Promise<T>,
 ): Promise<CallToolResult> {
   const startedAt = Date.now();
-  logEvent("tool.started", { tool: name });
+  logEvent('tool.started', { tool: name });
   try {
     const data = await fn();
-    logEvent("tool.completed", {
+    logEvent('tool.completed', {
       tool: name,
       durationMs: Date.now() - startedAt,
     });
     return {
-      content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+      content: [{ type: 'text', text: JSON.stringify(data, null, 2) }],
       structuredContent: data,
     };
   } catch (error) {
     const { code, message } = describeError(error);
-    logEvent("tool.failed", {
+    logEvent('tool.failed', {
       tool: name,
       durationMs: Date.now() - startedAt,
       error: message,
     });
     return {
-      content: [{ type: "text", text: `${code}: ${message}` }],
+      content: [{ type: 'text', text: `${code}: ${message}` }],
       isError: true,
     };
   }
