@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.0](https://github.com/ottonic/standards-mcp-server/compare/standards-mcp-server-v0.2.1...standards-mcp-server-v0.3.0) (2026-10-31)
+
+
+### ⚠ BREAKING CHANGES
+
+* require Node 26 and move to MCP SDK 2.4.0 ([#16](https://github.com/ottonic/standards-mcp-server/issues/16))
+
+### Features
+
+* require Node 26 and move to MCP SDK 2.4.0 ([#16](https://github.com/ottonic/standards-mcp-server/issues/16)) ([28f56d6](https://github.com/ottonic/standards-mcp-server/commit/28f56d6359bc1a343b0666a76bb18da1fa16ca39))
+
 ## [0.2.1](https://github.com/ottonic/standards-mcp-server/compare/standards-mcp-server-v0.2.0...standards-mcp-server-v0.2.1) (2026-10-31)
 
 
