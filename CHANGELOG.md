@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/ottonic/standards-mcp-server/compare/standards-mcp-server-v0.2.0...standards-mcp-server-v0.2.1) (2026-10-31)
+
+
+### Bug Fixes
+
+* **ci:** make the release publish step idempotent and retryable ([#10](https://github.com/ottonic/standards-mcp-server/issues/10)) ([755bfb8](https://github.com/ottonic/standards-mcp-server/commit/755bfb85274e592b46556e42dc66b7db142ab9ad))
+
 ## [0.2.0](https://github.com/ottonic/standards-mcp-server/compare/standards-mcp-server-v0.1.0...standards-mcp-server-v0.2.0) (2026-10-30)
 
 
